@@ -8,6 +8,7 @@ class LocalStorageService {
 
   static const String _userProfileKey = 'appointmentpro_user_profile';
   static const String _isRegisteredKey = 'appointmentpro_is_registered';
+  static const String _isLoggedInKey = 'appointmentpro_is_logged_in';
 
   Future<SharedPreferences> get _instance async {
     return _preferences ??= await SharedPreferences.getInstance();
@@ -64,9 +65,47 @@ class LocalStorageService {
     return await getBool(_isRegisteredKey) ?? false;
   }
 
+  Future<bool> isLoggedIn() async {
+    return await getBool(_isLoggedInKey) ?? false;
+  }
+
+  Future<void> setLoggedIn(bool value) async {
+    await setBool(_isLoggedInKey, value);
+  }
+
+  Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
+  }) async {
+    final existingProfileJson = await getUserProfile();
+    if (existingProfileJson == null) {
+      throw Exception('No account found. Please register first.');
+    }
+
+    final data = jsonDecode(existingProfileJson) as Map<String, dynamic>;
+    final savedEmail = (data['email'] as String? ?? '').trim().toLowerCase();
+    final savedPassword = data['password'] as String? ?? '';
+
+    if (savedEmail != email.trim().toLowerCase()) {
+      throw Exception('No account registered with this email address.');
+    }
+
+    if (savedPassword != password) {
+      throw Exception('Incorrect password. Please try again.');
+    }
+
+    await setLoggedIn(true);
+    return data;
+  }
+
+  Future<void> logout() async {
+    await setBool(_isLoggedInKey, false);
+  }
+
   Future<void> clearUserProfile() async {
     final prefs = await _instance;
     await prefs.remove(_userProfileKey);
     await prefs.remove(_isRegisteredKey);
+    await prefs.remove(_isLoggedInKey);
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/utils/app_toast.dart';
@@ -52,7 +53,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       AppToast.success(context, 'Account details saved successfully!');
 
-      context.go('/login');
+      context.go(AppRouter.login);
     } catch (e) {
       if (!mounted) return;
 
@@ -181,7 +182,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           confirmPasswordController: _confirmPasswordController,
                           isLoading: registerState.isLoading,
                           onSubmit: _register,
-                          onLoginTap: () => context.go('/login'),
+                          onLoginTap: () => context.go(AppRouter.login),
                         ),
                       ),
                     ),

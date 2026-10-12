@@ -14,6 +14,7 @@ class AppTextField extends StatefulWidget {
   final AutovalidateMode? autovalidateMode;
   final List<TextInputFormatter>? inputFormatters;
   final int? maxLength;
+  final bool isRequired;
 
   const AppTextField({
     super.key,
@@ -29,6 +30,7 @@ class AppTextField extends StatefulWidget {
     this.autovalidateMode,
     this.inputFormatters,
     this.maxLength,
+    this.isRequired = false,
   });
 
   @override
@@ -53,8 +55,20 @@ class _AppTextFieldState extends State<AppTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.label,
+        Text.rich(
+          TextSpan(
+            text: widget.label,
+            children: [
+              if (widget.isRequired)
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
+          ),
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,

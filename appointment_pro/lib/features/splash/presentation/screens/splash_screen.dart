@@ -6,6 +6,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../auth/presentation/providers/register_provider.dart';
 import '../providers/splash_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -19,14 +20,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToRegister();
+    _navigateNext();
   }
 
-  Future<void> _navigateToRegister() async {
+  Future<void> _navigateNext() async {
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
+
     ref.read(splashProvider.notifier).finishLoading();
-    context.go(AppRouter.register);
+
+    final storage = ref.read(localStorageServiceProvider);
+    final isLoggedIn = await storage.isLoggedIn();
+
+    if (!mounted) return;
+
+    if (isLoggedIn) {
+      context.go(AppRouter.dashboard);
+    } else {
+      context.go(AppRouter.login);
+    }
   }
 
   @override
