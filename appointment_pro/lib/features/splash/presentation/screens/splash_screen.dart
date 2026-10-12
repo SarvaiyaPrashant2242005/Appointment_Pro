@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/asset_constants.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../providers/splash_provider.dart';
 
 class SplashScreen extends ConsumerWidget {
@@ -25,11 +27,7 @@ class SplashScreen extends ConsumerWidget {
                   color: AppColors.accent,
                   borderRadius: BorderRadius.circular(28),
                 ),
-                child: const Icon(
-                  Icons.calendar_month_rounded,
-                  size: 56,
-                  color: AppColors.primary,
-                ),
+                child: const Image(image: AssetImage(AppAssets.appIconDark)),
               ),
               const SizedBox(height: 24),
               const Text(
@@ -43,18 +41,15 @@ class SplashScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Bookings made simple.',
+                'Booking & Business Manager',
                 style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 40),
               if (splashState.isLoading)
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: AppColors.accent,
-                  ),
+                const AppLoader(
+                  size: 24,
+                  strokeWidth: 2.5,
+                  color: AppColors.accent,
                 ),
             ],
           ),

@@ -22,24 +22,26 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
 
-
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/App Icons/AppointmentPro_Dark.png"
+  image_path: "assets/App_Icons/AppointmentPro_Dark.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   web:
     generate: true
-    image_path: "assets/App Icons/AppointmentPro_Dark.png"
+    image_path: "assets/App_Icons/AppointmentPro_Dark.png"
     background_color: "#hexcode"
     theme_color: "#hexcode"
   windows:
     generate: true
-    image_path: "assets/App Icons/AppointmentPro_Dark.png"
+    image_path: "assets/App_Icons/AppointmentPro_Dark.png"
     icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
-    image_path: "assets/App Icons/AppointmentPro_Dark.png"
+    image_path: "assets/App_Icons/AppointmentPro_Dark.png"
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/App_Icons/
+
