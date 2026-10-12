@@ -9,6 +9,7 @@ class LocalStorageService {
   static const String _userProfileKey = 'appointmentpro_user_profile';
   static const String _isRegisteredKey = 'appointmentpro_is_registered';
   static const String _isLoggedInKey = 'appointmentpro_is_logged_in';
+  static const String _currentUserEmailKey = 'appointmentpro_current_user_email';
 
   Future<SharedPreferences> get _instance async {
     return _preferences ??= await SharedPreferences.getInstance();
@@ -66,11 +67,30 @@ class LocalStorageService {
   }
 
   Future<bool> isLoggedIn() async {
-    return await getBool(_isLoggedInKey) ?? false;
+    final prefs = await _instance;
+    try {
+      await prefs.reload();
+    } catch (_) {}
+    return prefs.getBool(_isLoggedInKey) ?? false;
   }
 
   Future<void> setLoggedIn(bool value) async {
-    await setBool(_isLoggedInKey, value);
+    final prefs = await _instance;
+    await prefs.setBool(_isLoggedInKey, value);
+  }
+
+  Future<String?> getCurrentUserEmail() async {
+    return getString(_currentUserEmailKey);
+  }
+
+  Future<String?> getCurrentUserName() async {
+    final profileJson = await getUserProfile();
+    if (profileJson == null) return null;
+    try {
+      final data = jsonDecode(profileJson) as Map<String, dynamic>;
+      return data['fullName'] as String?;
+    } catch (_) {}
+    return null;
   }
 
   Future<Map<String, dynamic>> login({
@@ -94,12 +114,16 @@ class LocalStorageService {
       throw Exception('Incorrect password. Please try again.');
     }
 
-    await setLoggedIn(true);
+    final prefs = await _instance;
+    await prefs.setBool(_isLoggedInKey, true);
+    await prefs.setString(_currentUserEmailKey, savedEmail);
     return data;
   }
 
   Future<void> logout() async {
-    await setBool(_isLoggedInKey, false);
+    final prefs = await _instance;
+    await prefs.setBool(_isLoggedInKey, false);
+    await prefs.remove(_currentUserEmailKey);
   }
 
   Future<void> clearUserProfile() async {
@@ -107,5 +131,6 @@ class LocalStorageService {
     await prefs.remove(_userProfileKey);
     await prefs.remove(_isRegisteredKey);
     await prefs.remove(_isLoggedInKey);
+    await prefs.remove(_currentUserEmailKey);
   }
 }

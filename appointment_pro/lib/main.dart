@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app/app.dart';
 
-void main() {
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SharedPreferences.getInstance();
 
   runApp(const ProviderScope(child: AppointmentProApp()));
 }
