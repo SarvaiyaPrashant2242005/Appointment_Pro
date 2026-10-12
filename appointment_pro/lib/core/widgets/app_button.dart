@@ -18,20 +18,35 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: isOutlined
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onPrimary,
+            ),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
                 Icon(icon, size: 18),
                 const SizedBox(width: 8),
               ],
-              Text(label),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
+              ),
             ],
           );
 

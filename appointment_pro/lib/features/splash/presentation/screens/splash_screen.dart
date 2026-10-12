@@ -1,16 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../providers/splash_provider.dart';
 
-class SplashScreen extends ConsumerWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _navigateToRegister();
+  }
+
+  Future<void> _navigateToRegister() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    ref.read(splashProvider.notifier).finishLoading();
+    context.go(AppRouter.register);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final splashState = ref.watch(splashProvider);
 
     return Scaffold(

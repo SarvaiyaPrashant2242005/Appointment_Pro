@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTextField extends StatefulWidget {
   final String label;
@@ -8,6 +9,11 @@ class AppTextField extends StatefulWidget {
   final bool obscureText;
   final TextInputType keyboardType;
   final Widget? prefixIcon;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
+  final AutovalidateMode? autovalidateMode;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
 
   const AppTextField({
     super.key,
@@ -18,6 +24,11 @@ class AppTextField extends StatefulWidget {
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.prefixIcon,
+    this.textInputAction,
+    this.onFieldSubmitted,
+    this.autovalidateMode,
+    this.inputFormatters,
+    this.maxLength,
   });
 
   @override
@@ -35,21 +46,60 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
+        Text(
+          widget.label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 6),
         TextFormField(
           controller: widget.controller,
           validator: widget.validator,
           keyboardType: widget.keyboardType,
           obscureText: _obscured,
+          textInputAction: widget.textInputAction,
+          onFieldSubmitted: widget.onFieldSubmitted,
+          autovalidateMode: widget.autovalidateMode,
+          inputFormatters: widget.inputFormatters,
+          maxLength: widget.maxLength,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurface,
+          ),
           decoration: InputDecoration(
             hintText: widget.hint,
-            prefixIcon: widget.prefixIcon,
+            counterText: '',
+            hintStyle: TextStyle(
+              fontSize: 14,
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+            ),
+            filled: true,
+            fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            prefixIcon: widget.prefixIcon != null
+                ? IconTheme(
+                    data: IconThemeData(
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      size: 20,
+                    ),
+                    child: widget.prefixIcon!,
+                  )
+                : null,
             suffixIcon: widget.obscureText
                 ? IconButton(
+                    iconSize: 20,
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     onPressed: () => setState(() => _obscured = !_obscured),
                     icon: Icon(
                       _obscured
@@ -58,6 +108,32 @@ class _AppTextFieldState extends State<AppTextField> {
                     ),
                   )
                 : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                width: 1.2,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                width: 1.2,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: colorScheme.primary, width: 1.8),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: colorScheme.error, width: 1.2),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: colorScheme.error, width: 1.8),
+            ),
           ),
         ),
       ],
