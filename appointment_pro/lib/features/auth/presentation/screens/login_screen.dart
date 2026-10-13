@@ -8,6 +8,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../providers/login_provider.dart';
 import '../widgets/login_form.dart';
 
@@ -45,7 +46,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
 
       AppToast.success(context, 'Signed in successfully!');
-      context.go(AppRouter.dashboard);
+
+      final businesses =
+          await ref.read(businessRepositoryProvider).getBusinesses();
+      if (!mounted) return;
+
+      if (businesses.isEmpty) {
+        context.go('${AppRouter.businessSetup}?mandatory=true');
+      } else {
+        context.go(AppRouter.dashboard);
+      }
     } catch (e) {
       if (!mounted) return;
 

@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/presentation/providers/register_provider.dart';
+import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../providers/splash_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -35,7 +36,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!mounted) return;
 
     if (isLoggedIn) {
-      context.go(AppRouter.dashboard);
+      final businesses =
+          await ref.read(businessRepositoryProvider).getBusinesses();
+      if (!mounted) return;
+
+      if (businesses.isEmpty) {
+        context.go('${AppRouter.businessSetup}?mandatory=true');
+      } else {
+        context.go(AppRouter.dashboard);
+      }
     } else {
       context.go(AppRouter.login);
     }
