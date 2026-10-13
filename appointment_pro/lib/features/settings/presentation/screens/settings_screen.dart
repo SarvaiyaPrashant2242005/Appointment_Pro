@@ -4,16 +4,211 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_provider.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  void _showThemeDialog(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.read(themeModeProvider);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        final isDark = theme.brightness == Brightness.dark;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                'Choose Theme',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildThemeOption(
+                ctx,
+                title: 'Light Mode',
+                subtitle: 'Clean and bright appearance',
+                icon: Icons.light_mode_outlined,
+                isSelected: currentMode == ThemeMode.light,
+                onTap: () {
+                  ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.light);
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildThemeOption(
+                ctx,
+                title: 'Dark Mode',
+                subtitle: 'Sleek and easy on the eyes',
+                icon: Icons.dark_mode_outlined,
+                isSelected: currentMode == ThemeMode.dark,
+                onTap: () {
+                  ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.dark);
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildThemeOption(
+                ctx,
+                title: 'System Default',
+                subtitle: 'Follow device system settings',
+                icon: Icons.brightness_auto_outlined,
+                isSelected: currentMode == ThemeMode.system,
+                onTap: () {
+                  ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.system);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.accent.withValues(alpha: 0.12)
+                : (isDark
+                    ? AppColors.darkInputFill
+                    : AppColors.inputFill),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.accent
+                  : (isDark ? AppColors.darkBorder : AppColors.border),
+              width: isSelected ? 1.6 : 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.accent.withValues(alpha: 0.2)
+                      : (isDark
+                          ? AppColors.darkSurface
+                          : Colors.white),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: isSelected ? AppColors.accent : theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.accent,
+                  size: 22,
+                )
+              else
+                Icon(
+                  Icons.circle_outlined,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                  size: 22,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final activeBusiness = ref.watch(activeBusinessProvider);
+    final currentThemeMode = ref.watch(themeModeProvider);
+
+    final String themeSubtitle;
+    final IconData themeIcon;
+    switch (currentThemeMode) {
+      case ThemeMode.light:
+        themeSubtitle = 'Light Mode';
+        themeIcon = Icons.light_mode_outlined;
+        break;
+      case ThemeMode.dark:
+        themeSubtitle = 'Dark Mode';
+        themeIcon = Icons.dark_mode_outlined;
+        break;
+      case ThemeMode.system:
+        themeSubtitle = 'System Default';
+        themeIcon = Icons.brightness_auto_outlined;
+        break;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -79,21 +274,15 @@ class SettingsScreen extends ConsumerWidget {
                   title: const Text('Notifications'),
                   subtitle: const Text('Reminders, bookings, updates'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () {
-                    // Placeholder for notifications settings
-                  },
+                  onTap: () {},
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.dark_mode_outlined, color: AppColors.accent),
+                  leading: Icon(themeIcon, color: AppColors.accent),
                   title: const Text('Theme'),
-                  subtitle: Text(
-                    theme.brightness == Brightness.dark ? 'Dark Mode' : 'Light Mode',
-                  ),
+                  subtitle: Text(themeSubtitle),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () {
-                    // Theme switcher dialog or setting
-                  },
+                  onTap: () => _showThemeDialog(context, ref),
                 ),
               ],
             ),
