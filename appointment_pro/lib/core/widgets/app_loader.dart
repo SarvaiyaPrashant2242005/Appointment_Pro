@@ -24,11 +24,7 @@ class AppLoader extends StatelessWidget {
     );
 
     if (size != null) {
-      indicator = SizedBox(
-        width: size,
-        height: size,
-        child: indicator,
-      );
+      indicator = SizedBox(width: size, height: size, child: indicator);
     }
 
     return Center(

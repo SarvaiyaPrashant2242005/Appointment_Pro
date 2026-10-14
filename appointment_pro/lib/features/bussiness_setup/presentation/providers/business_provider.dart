@@ -34,6 +34,18 @@ class BusinessController extends AsyncNotifier<List<BusinessModel>> {
     }
   }
 
+  Future<void> updateBusiness(BusinessModel business) async {
+    final previous = state.asData?.value ?? [];
+
+    try {
+      final updated = await _repository.updateBusiness(business);
+      state = AsyncData(updated);
+    } catch (_) {
+      state = AsyncData(previous);
+      rethrow;
+    }
+  }
+
   Future<void> setActiveBusiness(String id) async {
     final previous = state.asData?.value ?? [];
 
@@ -51,4 +63,8 @@ final activeBusinessProvider = Provider<BusinessModel?>((ref) {
   final businesses = ref.watch(businessProvider).value ?? [];
   return businesses.where((b) => b.isActive).firstOrNull ??
       businesses.firstOrNull;
+});
+
+final activeBusinessIdProvider = Provider<String?>((ref) {
+  return ref.watch(activeBusinessProvider)?.id;
 });

@@ -8,10 +8,7 @@ import '../core/widgets/app_confirm_dialog.dart';
 class MainNavigationScreen extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
-  const MainNavigationScreen({
-    super.key,
-    required this.navigationShell,
-  });
+  const MainNavigationScreen({super.key, required this.navigationShell});
 
   void _onDestinationSelected(int index) {
     navigationShell.goBranch(
@@ -64,22 +61,34 @@ class MainNavigationScreen extends StatelessWidget {
             destinations: const [
               NavigationDestination(
                 icon: Icon(Icons.dashboard_outlined),
-                selectedIcon: Icon(Icons.dashboard_rounded, color: AppColors.accent),
+                selectedIcon: Icon(
+                  Icons.dashboard_rounded,
+                  color: AppColors.accent,
+                ),
                 label: 'Home',
               ),
               NavigationDestination(
                 icon: Icon(Icons.storefront_outlined),
-                selectedIcon: Icon(Icons.storefront_rounded, color: AppColors.accent),
+                selectedIcon: Icon(
+                  Icons.storefront_rounded,
+                  color: AppColors.accent,
+                ),
                 label: 'Business',
               ),
               NavigationDestination(
                 icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings_rounded, color: AppColors.accent),
+                selectedIcon: Icon(
+                  Icons.settings_rounded,
+                  color: AppColors.accent,
+                ),
                 label: 'Settings',
               ),
               NavigationDestination(
                 icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person_rounded, color: AppColors.accent),
+                selectedIcon: Icon(
+                  Icons.person_rounded,
+                  color: AppColors.accent,
+                ),
                 label: 'Profile',
               ),
             ],

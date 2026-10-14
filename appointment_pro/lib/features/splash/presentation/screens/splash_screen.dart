@@ -36,8 +36,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!mounted) return;
 
     if (isLoggedIn) {
-      final businesses =
-          await ref.read(businessRepositoryProvider).getBusinesses();
+      final businesses = await ref
+          .read(businessRepositoryProvider)
+          .getBusinesses();
       if (!mounted) return;
 
       if (businesses.isEmpty) {

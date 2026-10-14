@@ -99,12 +99,19 @@ class _AppTextFieldState extends State<AppTextField> {
               color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
             ),
             filled: true,
-            fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            fillColor: isDark
+                ? const Color(0xFF1E293B)
+                : const Color(0xFFF8FAFC),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 13,
+            ),
             prefixIcon: widget.prefixIcon != null
                 ? IconTheme(
                     data: IconThemeData(
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                       size: 20,
                     ),
                     child: widget.prefixIcon!,
@@ -113,7 +120,9 @@ class _AppTextFieldState extends State<AppTextField> {
             suffixIcon: widget.obscureText
                 ? IconButton(
                     iconSize: 20,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                     onPressed: () => setState(() => _obscured = !_obscured),
                     icon: Icon(
                       _obscured
@@ -125,14 +134,18 @@ class _AppTextFieldState extends State<AppTextField> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
                 width: 1.2,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
                 width: 1.2,
               ),
             ),

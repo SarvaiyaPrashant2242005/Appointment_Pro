@@ -5,9 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/local_storage_service.dart';
 import '../../data/models/register_model.dart';
 
-final localStorageServiceProvider = Provider<LocalStorageService>((ref) {
-  return LocalStorageService();
-});
+export '../../../../core/services/local_storage_service.dart'
+    show localStorageServiceProvider;
 
 class RegisterState {
   final bool isLoading;

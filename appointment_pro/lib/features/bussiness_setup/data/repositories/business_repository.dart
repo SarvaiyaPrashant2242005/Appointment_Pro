@@ -42,6 +42,17 @@ class BusinessRepository {
     return updated;
   }
 
+  Future<List<BusinessModel>> updateBusiness(BusinessModel business) async {
+    final businesses = await getBusinesses();
+
+    final updated = businesses
+        .map((b) => b.id == business.id ? business : b)
+        .toList();
+
+    await _save(updated);
+    return updated;
+  }
+
   Future<List<BusinessModel>> setActiveBusiness(String id) async {
     final businesses = await getBusinesses();
 

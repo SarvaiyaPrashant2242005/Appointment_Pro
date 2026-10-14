@@ -23,18 +23,29 @@ class BusinessModel {
     required this.createdAt,
   });
 
-  BusinessModel copyWith({bool? isActive}) {
+  BusinessModel copyWith({
+    String? id,
+    String? name,
+    String? type,
+    String? otherType,
+    String? logoPath,
+    String? email,
+    String? countryCode,
+    String? phone,
+    bool? isActive,
+    DateTime? createdAt,
+  }) {
     return BusinessModel(
-      id: id,
-      name: name,
-      type: type,
-      otherType: otherType,
-      logoPath: logoPath,
-      email: email,
-      countryCode: countryCode,
-      phone: phone,
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      otherType: otherType ?? this.otherType,
+      logoPath: logoPath ?? this.logoPath,
+      email: email ?? this.email,
+      countryCode: countryCode ?? this.countryCode,
+      phone: phone ?? this.phone,
       isActive: isActive ?? this.isActive,
-      createdAt: createdAt,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 

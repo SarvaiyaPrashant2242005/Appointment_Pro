@@ -10,11 +10,13 @@ import '../../../../core/widgets/app_text_field.dart';
 import '../../data/models/business_model.dart';
 
 class BusinessSetupForm extends StatefulWidget {
+  final BusinessModel? initialBusiness;
   final Future<void> Function(BusinessModel business) onSubmit;
   final bool isLoading;
 
   const BusinessSetupForm({
     super.key,
+    this.initialBusiness,
     required this.onSubmit,
     this.isLoading = false,
   });
@@ -25,13 +27,13 @@ class BusinessSetupForm extends StatefulWidget {
 
 class _BusinessSetupFormState extends State<BusinessSetupForm> {
   final _formKey = GlobalKey<FormState>();
-  final _name = TextEditingController();
-  final _otherType = TextEditingController();
-  final _email = TextEditingController();
-  final _phone = TextEditingController();
+  late final TextEditingController _name;
+  late final TextEditingController _otherType;
+  late final TextEditingController _email;
+  late final TextEditingController _phone;
 
-  String _type = 'Salon / Beauty';
-  String _countryCode = '+91';
+  late String _type;
+  late String _countryCode;
   String? _logoPath;
 
   static const _types = [
@@ -44,6 +46,24 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
     'Professional Services',
     'Other',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final b = widget.initialBusiness;
+    _name = TextEditingController(text: b?.name ?? '');
+    _otherType = TextEditingController(text: b?.otherType ?? '');
+    _email = TextEditingController(text: b?.email ?? '');
+    _phone = TextEditingController(text: b?.phone ?? '');
+    _type = (b != null && _types.contains(b.type))
+        ? b.type
+        : (b != null ? 'Other' : 'Salon / Beauty');
+    if (b != null && !_types.contains(b.type) && (b.otherType == null || b.otherType!.isEmpty)) {
+      _otherType.text = b.type;
+    }
+    _countryCode = b?.countryCode ?? '+91';
+    _logoPath = b?.logoPath;
+  }
 
   @override
   void dispose() {
@@ -73,17 +93,27 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final business = BusinessModel(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: _name.text.trim(),
-      type: _type,
-      otherType: _type == 'Other' ? _otherType.text.trim() : null,
-      logoPath: _logoPath,
-      email: _email.text.trim().isEmpty ? null : _email.text.trim(),
-      countryCode: _countryCode,
-      phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
-      createdAt: DateTime.now(),
-    );
+    final business = widget.initialBusiness != null
+        ? widget.initialBusiness!.copyWith(
+            name: _name.text.trim(),
+            type: _type,
+            otherType: _type == 'Other' ? _otherType.text.trim() : null,
+            logoPath: _logoPath,
+            email: _email.text.trim().isEmpty ? null : _email.text.trim(),
+            countryCode: _countryCode,
+            phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+          )
+        : BusinessModel(
+            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            name: _name.text.trim(),
+            type: _type,
+            otherType: _type == 'Other' ? _otherType.text.trim() : null,
+            logoPath: _logoPath,
+            email: _email.text.trim().isEmpty ? null : _email.text.trim(),
+            countryCode: _countryCode,
+            phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+            createdAt: DateTime.now(),
+          );
 
     await widget.onSubmit(business);
   }
@@ -181,8 +211,10 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                 isExpanded: true,
                 dropdownColor: isDark ? AppColors.darkSurface : Colors.white,
                 decoration: InputDecoration(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 13,
+                  ),
                   prefixIcon: IconTheme(
                     data: IconThemeData(
                       color: isDark
@@ -265,7 +297,9 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                     width: 90,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkInputFill : AppColors.inputFill,
+                      color: isDark
+                          ? AppColors.darkInputFill
+                          : AppColors.inputFill,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isDark ? AppColors.darkBorder : AppColors.border,
@@ -289,8 +323,9 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                           fontWeight: FontWeight.w600,
                           color: colorScheme.onSurface,
                         ),
-                        dropdownColor:
-                            isDark ? AppColors.darkSurface : Colors.white,
+                        dropdownColor: isDark
+                            ? AppColors.darkSurface
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         selectedItemBuilder: (context) {
                           return const [
@@ -383,7 +418,9 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
 
           // Submit Button
           AppButton(
-            label: 'Save Business',
+            label: widget.initialBusiness != null
+                ? 'Update Business'
+                : 'Save Business',
             onPressed: _submit,
             isLoading: widget.isLoading,
           ),

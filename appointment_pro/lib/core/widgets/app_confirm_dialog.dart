@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
 
-enum ConfirmDialogType {
-  logout,
-  delete,
-  exit,
-  custom,
-}
+enum ConfirmDialogType { logout, delete, exit, custom }
 
 class AppConfirmDialog extends StatelessWidget {
   final String title;
@@ -71,9 +66,11 @@ class AppConfirmDialog extends StatelessWidget {
     String confirmText = 'Delete',
     String cancelText = 'Cancel',
   }) async {
-    final resolvedTitle = title ??
+    final resolvedTitle =
+        title ??
         (itemName != null ? 'Delete $itemName?' : 'Delete Confirmation');
-    final resolvedMessage = message ??
+    final resolvedMessage =
+        message ??
         'Are you sure you want to delete this? This action cannot be undone.';
 
     final result = await showDialog<bool>(
@@ -158,18 +155,18 @@ class AppConfirmDialog extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final resolvedIconColor = iconColor ??
+    final resolvedIconColor =
+        iconColor ??
         (isDestructive ? AppColors.error : theme.colorScheme.primary);
-    final resolvedIconBg = iconBackgroundColor ??
-        resolvedIconColor.withValues(alpha: 0.12);
-    final resolvedBtnColor = confirmButtonColor ??
+    final resolvedIconBg =
+        iconBackgroundColor ?? resolvedIconColor.withValues(alpha: 0.12);
+    final resolvedBtnColor =
+        confirmButtonColor ??
         (isDestructive ? AppColors.error : theme.colorScheme.primary);
 
     return Dialog(
       backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       elevation: 8,
       child: ConstrainedBox(
@@ -187,11 +184,7 @@ class AppConfirmDialog extends StatelessWidget {
                   color: resolvedIconBg,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  size: 30,
-                  color: resolvedIconColor,
-                ),
+                child: Icon(icon, size: 30, color: resolvedIconColor),
               ),
               const SizedBox(height: 18),
 

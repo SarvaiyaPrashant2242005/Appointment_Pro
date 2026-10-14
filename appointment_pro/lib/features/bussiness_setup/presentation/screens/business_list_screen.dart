@@ -2,13 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../providers/business_provider.dart';
+import '../widgets/business_form_sheet.dart';
 
 class BusinessListScreen extends ConsumerWidget {
   const BusinessListScreen({super.key});
@@ -18,19 +17,15 @@ class BusinessListScreen extends ConsumerWidget {
     final businesses = ref.watch(businessProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Businesses'),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: const Text('My Businesses'), centerTitle: false),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRouter.businessSetup),
+        onPressed: () => showBusinessFormSheet(context),
         icon: const Icon(Icons.add),
         label: const Text('Add Business'),
       ),
       body: businesses.when(
-        loading: () => const Center(
-          child: AppLoader(message: 'Loading businesses...'),
-        ),
+        loading: () =>
+            const Center(child: AppLoader(message: 'Loading businesses...')),
         error: (err, stack) => Center(
           child: AppErrorView(
             message: 'Unable to load businesses.',
@@ -46,7 +41,7 @@ class BusinessListScreen extends ConsumerWidget {
                     'Add your business to start managing schedules, bookings, and services.',
                 actionLabel: 'Add Business',
                 icon: Icons.storefront_outlined,
-                onAction: () => context.push(AppRouter.businessSetup),
+                onAction: () => showBusinessFormSheet(context),
               ),
             );
           }
@@ -59,6 +54,10 @@ class BusinessListScreen extends ConsumerWidget {
               final business = items[index];
 
               return AppCard(
+                onTap: () => showBusinessFormSheet(
+                  context,
+                  initialBusiness: business,
+                ),
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
@@ -72,7 +71,10 @@ class BusinessListScreen extends ConsumerWidget {
                               height: 48,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.business, color: AppColors.accent),
+                                  const Icon(
+                                    Icons.business,
+                                    color: AppColors.accent,
+                                  ),
                             ),
                           )
                         : const Icon(Icons.business, color: AppColors.accent),
@@ -86,8 +88,11 @@ class BusinessListScreen extends ConsumerWidget {
                         ? (business.otherType ?? 'Other')
                         : business.type,
                   ),
-                  trailing: business.isActive
-                      ? Container(
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (business.isActive)
+                        Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 5,
@@ -116,7 +121,8 @@ class BusinessListScreen extends ConsumerWidget {
                             ],
                           ),
                         )
-                      : TextButton(
+                      else
+                        TextButton(
                           onPressed: () async {
                             try {
                               await ref
@@ -140,6 +146,18 @@ class BusinessListScreen extends ConsumerWidget {
                           },
                           child: const Text('Set Active'),
                         ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                        color: AppColors.accent,
+                        tooltip: 'Edit Business',
+                        onPressed: () => showBusinessFormSheet(
+                          context,
+                          initialBusiness: business,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

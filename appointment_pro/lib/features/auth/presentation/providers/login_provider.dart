@@ -13,10 +13,7 @@ class LoginController extends Notifier<LoginState> {
   @override
   LoginState build() => const LoginState();
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     state = const LoginState(isLoading: true);
 
     try {

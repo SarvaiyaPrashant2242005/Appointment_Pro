@@ -34,10 +34,7 @@ class ProfileScreen extends ConsumerWidget {
     final activeBusiness = ref.watch(activeBusinessProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: const Text('My Profile'), centerTitle: false),
       body: FutureBuilder<String?>(
         future: storage.getUserProfile(),
         builder: (context, snapshot) {
@@ -54,12 +51,12 @@ class ProfileScreen extends ConsumerWidget {
 
           final initials = fullName.trim().isNotEmpty
               ? fullName
-                  .trim()
-                  .split(' ')
-                  .map((e) => e.isNotEmpty ? e[0] : '')
-                  .take(2)
-                  .join()
-                  .toUpperCase()
+                    .trim()
+                    .split(' ')
+                    .map((e) => e.isNotEmpty ? e[0] : '')
+                    .take(2)
+                    .join()
+                    .toUpperCase()
               : 'U';
 
           return SingleChildScrollView(
@@ -72,7 +69,9 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       CircleAvatar(
                         radius: 44,
-                        backgroundColor: AppColors.accent.withValues(alpha: 0.15),
+                        backgroundColor: AppColors.accent.withValues(
+                          alpha: 0.15,
+                        ),
                         child: Text(
                           initials,
                           style: const TextStyle(
@@ -94,7 +93,9 @@ class ProfileScreen extends ConsumerWidget {
                         Text(
                           email,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ),
                       ],
@@ -209,9 +210,8 @@ class ProfileScreen extends ConsumerWidget {
                                   const SizedBox(height: 4),
                                   Text(
                                     activeBusiness?.name ?? 'None',
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ],

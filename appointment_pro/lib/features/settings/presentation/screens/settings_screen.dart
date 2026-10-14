@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_provider.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
+import '../../../bussiness_setup/presentation/widgets/business_form_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -37,8 +38,9 @@ class SettingsScreen extends ConsumerWidget {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black)
-                        .withValues(alpha: 0.2),
+                    color: (isDark ? Colors.white : Colors.black).withValues(
+                      alpha: 0.2,
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -57,7 +59,9 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.light_mode_outlined,
                 isSelected: currentMode == ThemeMode.light,
                 onTap: () {
-                  ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.light);
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setThemeMode(ThemeMode.light);
                   Navigator.pop(ctx);
                 },
               ),
@@ -69,7 +73,9 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.dark_mode_outlined,
                 isSelected: currentMode == ThemeMode.dark,
                 onTap: () {
-                  ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.dark);
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setThemeMode(ThemeMode.dark);
                   Navigator.pop(ctx);
                 },
               ),
@@ -81,7 +87,9 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.brightness_auto_outlined,
                 isSelected: currentMode == ThemeMode.system,
                 onTap: () {
-                  ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.system);
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setThemeMode(ThemeMode.system);
                   Navigator.pop(ctx);
                 },
               ),
@@ -113,9 +121,7 @@ class SettingsScreen extends ConsumerWidget {
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.accent.withValues(alpha: 0.12)
-                : (isDark
-                    ? AppColors.darkInputFill
-                    : AppColors.inputFill),
+                : (isDark ? AppColors.darkInputFill : AppColors.inputFill),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isSelected
@@ -132,15 +138,15 @@ class SettingsScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.accent.withValues(alpha: 0.2)
-                      : (isDark
-                          ? AppColors.darkSurface
-                          : Colors.white),
+                      : (isDark ? AppColors.darkSurface : Colors.white),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
                   size: 20,
-                  color: isSelected ? AppColors.accent : theme.colorScheme.onSurface,
+                  color: isSelected
+                      ? AppColors.accent
+                      : theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(width: 14),
@@ -152,8 +158,9 @@ class SettingsScreen extends ConsumerWidget {
                       title,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w600,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w600,
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
@@ -162,7 +169,9 @@ class SettingsScreen extends ConsumerWidget {
                       subtitle,
                       style: TextStyle(
                         fontSize: 12,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     ),
                   ],
@@ -211,10 +220,7 @@ class SettingsScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: const Text('Settings'), centerTitle: false),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
@@ -233,7 +239,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.storefront_outlined, color: AppColors.accent),
+                  leading: const Icon(
+                    Icons.storefront_outlined,
+                    color: AppColors.accent,
+                  ),
                   title: const Text('Manage Businesses'),
                   subtitle: Text(
                     activeBusiness != null
@@ -245,10 +254,46 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.add_business_outlined, color: AppColors.accent),
+                  leading: const Icon(
+                    Icons.add_business_outlined,
+                    color: AppColors.accent,
+                  ),
                   title: const Text('Add New Business'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push(AppRouter.businessSetup),
+                  onTap: () => showBusinessFormSheet(context),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.design_services_outlined,
+                    color: AppColors.accent,
+                  ),
+                  title: const Text('Services & Catalog'),
+                  subtitle: const Text('Manage prices, duration & buffers'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRouter.services),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.people_outline_rounded,
+                    color: AppColors.accent,
+                  ),
+                  title: const Text('Staff Members'),
+                  subtitle: const Text('Team profiles & service assignments'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRouter.staff),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.access_time_rounded,
+                    color: AppColors.accent,
+                  ),
+                  title: const Text('Hours & Availability'),
+                  subtitle: const Text('Working hours, breaks & holidays'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRouter.availability),
                 ),
               ],
             ),
@@ -270,7 +315,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.notifications_outlined, color: AppColors.accent),
+                  leading: const Icon(
+                    Icons.notifications_outlined,
+                    color: AppColors.accent,
+                  ),
                   title: const Text('Notifications'),
                   subtitle: const Text('Reminders, bookings, updates'),
                   trailing: const Icon(Icons.chevron_right_rounded),
@@ -310,7 +358,10 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.accent),
+                  leading: const Icon(
+                    Icons.privacy_tip_outlined,
+                    color: AppColors.accent,
+                  ),
                   title: const Text('Privacy & Terms'),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () {},

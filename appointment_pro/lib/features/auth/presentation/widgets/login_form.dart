@@ -87,8 +87,9 @@ class _LoginFormState extends State<LoginForm> {
             isLoading: widget.isLoading,
           ),
           const SizedBox(height: 22),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 "Don't have an account? ",

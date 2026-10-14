@@ -12,10 +12,7 @@ import '../widgets/business_setup_form.dart';
 class BusinessSetupScreen extends ConsumerWidget {
   final bool isMandatory;
 
-  const BusinessSetupScreen({
-    super.key,
-    this.isMandatory = false,
-  });
+  const BusinessSetupScreen({super.key, this.isMandatory = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,7 +20,9 @@ class BusinessSetupScreen extends ConsumerWidget {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final isTablet = screenWidth > 600;
-    final horizontalPadding = isTablet ? 32.0 : (screenWidth < 360 ? 16.0 : 20.0);
+    final horizontalPadding = isTablet
+        ? 32.0
+        : (screenWidth < 360 ? 16.0 : 20.0);
 
     return PopScope(
       canPop: !isMandatory,
@@ -47,7 +46,8 @@ class BusinessSetupScreen extends ConsumerWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 480),
               child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.symmetric(
                   horizontal: horizontalPadding,
                   vertical: 20,
@@ -60,11 +60,10 @@ class BusinessSetupScreen extends ConsumerWidget {
                         'Welcome! Let\'s set up your first business to get started.',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.65),
-                            ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.65),
+                        ),
                       ),
                       const SizedBox(height: 20),
                     ],

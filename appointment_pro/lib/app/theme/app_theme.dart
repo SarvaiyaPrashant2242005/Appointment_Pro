@@ -32,7 +32,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.inputFill,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.border, width: 1.2),
@@ -58,10 +61,7 @@ class AppTheme {
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
-        hintStyle: const TextStyle(
-          color: Color(0xFF94A3B8),
-          fontSize: 14,
-        ),
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
         prefixIconColor: AppColors.textSecondary,
         suffixIconColor: AppColors.textSecondary,
       ),
@@ -71,7 +71,9 @@ class AppTheme {
           foregroundColor: Colors.white,
           elevation: 0,
           minimumSize: const Size(double.infinity, 50),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -88,9 +90,7 @@ class AppTheme {
           color: AppColors.textPrimary,
           fontWeight: FontWeight.w600,
         ),
-        bodyMedium: TextStyle(
-          color: AppColors.textSecondary,
-        ),
+        bodyMedium: TextStyle(color: AppColors.textSecondary),
       ),
     );
   }
@@ -123,7 +123,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.darkInputFill,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.darkBorder, width: 1.2),
@@ -149,10 +152,7 @@ class AppTheme {
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
-        hintStyle: const TextStyle(
-          color: Color(0xFF64748B),
-          fontSize: 14,
-        ),
+        hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
         prefixIconColor: AppColors.darkTextSecondary,
         suffixIconColor: AppColors.darkTextSecondary,
       ),
@@ -162,7 +162,9 @@ class AppTheme {
           foregroundColor: AppColors.primary,
           elevation: 0,
           minimumSize: const Size(double.infinity, 50),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -179,9 +181,7 @@ class AppTheme {
           color: AppColors.darkTextPrimary,
           fontWeight: FontWeight.w600,
         ),
-        bodyMedium: TextStyle(
-          color: AppColors.darkTextSecondary,
-        ),
+        bodyMedium: TextStyle(color: AppColors.darkTextSecondary),
       ),
     );
   }

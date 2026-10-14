@@ -47,8 +47,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       AppToast.success(context, 'Signed in successfully!');
 
-      final businesses =
-          await ref.read(businessRepositoryProvider).getBusinesses();
+      final businesses = await ref
+          .read(businessRepositoryProvider)
+          .getBusinesses();
       if (!mounted) return;
 
       if (businesses.isEmpty) {
@@ -81,16 +82,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Responsive dimensions based on device size & keyboard state
     final double logoSize = isKeyboardOpen
         ? 52.0
-        : (screenHeight > 820
-            ? 130.0
-            : (screenHeight > 700 ? 100.0 : 72.0));
+        : (screenHeight > 820 ? 130.0 : (screenHeight > 700 ? 100.0 : 72.0));
 
     final double titleFontSize = isKeyboardOpen
         ? 20.0
         : (screenHeight > 750 ? 28.0 : 22.0);
 
     final double subtitleFontSize = isKeyboardOpen ? 12.0 : 14.0;
-    final double topVerticalPadding = isKeyboardOpen ? 8.0 : (screenHeight > 750 ? 16.0 : 8.0);
+    final double topVerticalPadding = isKeyboardOpen
+        ? 8.0
+        : (screenHeight > 750 ? 16.0 : 8.0);
     final int topFlex = isKeyboardOpen ? 4 : 9;
     final int bottomFlex = isKeyboardOpen ? 12 : 9;
 
@@ -140,7 +141,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.25),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.25,
+                                      ),
                                       blurRadius: 16,
                                       offset: const Offset(0, 6),
                                     ),

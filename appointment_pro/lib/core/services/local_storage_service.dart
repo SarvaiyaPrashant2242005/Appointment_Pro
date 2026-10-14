@@ -1,5 +1,10 @@
 import 'dart:convert';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+final localStorageServiceProvider = Provider<LocalStorageService>((ref) {
+  return LocalStorageService();
+});
 
 class LocalStorageService {
   LocalStorageService([this._preferences]);
@@ -9,7 +14,8 @@ class LocalStorageService {
   static const String _userProfileKey = 'appointmentpro_user_profile';
   static const String _isRegisteredKey = 'appointmentpro_is_registered';
   static const String _isLoggedInKey = 'appointmentpro_is_logged_in';
-  static const String _currentUserEmailKey = 'appointmentpro_current_user_email';
+  static const String _currentUserEmailKey =
+      'appointmentpro_current_user_email';
 
   Future<SharedPreferences> get _instance async {
     return _preferences ??= await SharedPreferences.getInstance();

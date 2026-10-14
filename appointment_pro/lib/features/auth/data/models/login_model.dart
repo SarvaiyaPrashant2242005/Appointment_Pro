@@ -2,15 +2,9 @@ class LoginModel {
   final String email;
   final String password;
 
-  const LoginModel({
-    required this.email,
-    required this.password,
-  });
+  const LoginModel({required this.email, required this.password});
 
-  Map<String, dynamic> toJson() => {
-    'email': email,
-    'password': password,
-  };
+  Map<String, dynamic> toJson() => {'email': email, 'password': password};
 
   factory LoginModel.fromJson(Map<String, dynamic> json) {
     return LoginModel(

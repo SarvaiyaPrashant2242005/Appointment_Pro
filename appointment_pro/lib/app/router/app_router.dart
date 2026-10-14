@@ -3,12 +3,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/availability/presentation/screens/availability_screen.dart';
 import '../../features/bussiness_setup/presentation/screens/business_list_screen.dart';
 import '../../features/bussiness_setup/presentation/screens/business_setup_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/services/presentation/screens/service_form_screen.dart';
+import '../../features/services/presentation/screens/services_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
+import '../../features/staff/presentation/screens/staff_form_screen.dart';
+import '../../features/staff/presentation/screens/staff_screen.dart';
 import '../../navigations/main_navigation.dart';
 
 class AppRouter {
@@ -24,6 +29,15 @@ class AppRouter {
   static const businessList = '/businesses';
   static const settings = '/settings';
   static const profile = '/profile';
+
+  // Management Module routes
+  static const services = '/services';
+  static const servicesCreate = '/services/create';
+  static const servicesEdit = '/services/:id/edit';
+  static const availability = '/availability';
+  static const staff = '/staff';
+  static const staffCreate = '/staff/create';
+  static const staffEdit = '/staff/:id/edit';
 
   static Page<dynamic> _buildSmoothPage({
     required GoRouterState state,
@@ -87,6 +101,57 @@ class AppRouter {
         },
       ),
 
+      // Services Routes
+      GoRoute(
+        path: services,
+        pageBuilder: (context, state) =>
+            _buildSmoothPage(state: state, child: const ServicesScreen()),
+      ),
+      GoRoute(
+        path: servicesCreate,
+        pageBuilder: (context, state) =>
+            _buildSmoothPage(state: state, child: const ServiceFormScreen()),
+      ),
+      GoRoute(
+        path: servicesEdit,
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'];
+          return _buildSmoothPage(
+            state: state,
+            child: ServiceFormScreen(serviceId: id),
+          );
+        },
+      ),
+
+      // Availability Route
+      GoRoute(
+        path: availability,
+        pageBuilder: (context, state) =>
+            _buildSmoothPage(state: state, child: const AvailabilityScreen()),
+      ),
+
+      // Staff Routes
+      GoRoute(
+        path: staff,
+        pageBuilder: (context, state) =>
+            _buildSmoothPage(state: state, child: const StaffScreen()),
+      ),
+      GoRoute(
+        path: staffCreate,
+        pageBuilder: (context, state) =>
+            _buildSmoothPage(state: state, child: const StaffFormScreen()),
+      ),
+      GoRoute(
+        path: staffEdit,
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'];
+          return _buildSmoothPage(
+            state: state,
+            child: StaffFormScreen(staffId: id),
+          );
+        },
+      ),
+
       // Bottom Navigation Bar Shell
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -97,8 +162,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: dashboard,
-                pageBuilder: (context, state) =>
-                    _buildSmoothPage(state: state, child: const DashboardScreen()),
+                pageBuilder: (context, state) => _buildSmoothPage(
+                  state: state,
+                  child: const DashboardScreen(),
+                ),
               ),
             ],
           ),
@@ -106,8 +173,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: businessList,
-                pageBuilder: (context, state) =>
-                    _buildSmoothPage(state: state, child: const BusinessListScreen()),
+                pageBuilder: (context, state) => _buildSmoothPage(
+                  state: state,
+                  child: const BusinessListScreen(),
+                ),
               ),
             ],
           ),
@@ -115,8 +184,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: settings,
-                pageBuilder: (context, state) =>
-                    _buildSmoothPage(state: state, child: const SettingsScreen()),
+                pageBuilder: (context, state) => _buildSmoothPage(
+                  state: state,
+                  child: const SettingsScreen(),
+                ),
               ),
             ],
           ),
@@ -124,8 +195,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: profile,
-                pageBuilder: (context, state) =>
-                    _buildSmoothPage(state: state, child: const ProfileScreen()),
+                pageBuilder: (context, state) => _buildSmoothPage(
+                  state: state,
+                  child: const ProfileScreen(),
+                ),
               ),
             ],
           ),
