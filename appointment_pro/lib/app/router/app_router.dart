@@ -20,6 +20,7 @@ import '../../features/bookings/presentation/screens/share_booking_screen.dart';
 import '../../features/bookings/presentation/screens/public_booking_screen.dart';
 import '../../features/bookings/presentation/screens/public_booking_manage_screen.dart';
 import '../../features/notifications/presentation/screens/notification_center_screen.dart';
+import '../../features/reports/presentation/screens/reports_analytics_screen.dart';
 import '../../navigations/main_navigation.dart';
 
 class AppRouter {
@@ -30,6 +31,7 @@ class AppRouter {
   static const register = '/register';
   static const businessSetup = '/business-setup';
   static const notifications = '/notifications';
+  static const reports = '/reports';
 
   // Bottom navigation tab branches
   static const dashboard = '/dashboard';
@@ -216,6 +218,13 @@ class AppRouter {
         pageBuilder: (context, state) => _buildSmoothPage(
           state: state,
           child: const NotificationCenterScreen(),
+        ),
+      ),
+      GoRoute(
+        path: reports,
+        pageBuilder: (context, state) => _buildSmoothPage(
+          state: state,
+          child: const ReportsAnalyticsScreen(),
         ),
       ),
 

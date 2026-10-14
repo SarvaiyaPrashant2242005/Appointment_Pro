@@ -916,7 +916,7 @@ class _BookingCalendarViewState extends ConsumerState<BookingCalendarView> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Price: \$${booking.price.toStringAsFixed(2)}',
+                    'Price: ₹${booking.price.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,

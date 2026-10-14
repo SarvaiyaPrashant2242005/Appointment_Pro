@@ -203,7 +203,7 @@ class BookingCard extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        '\$${booking.price.toStringAsFixed(2)}',
+                        '₹${booking.price.toStringAsFixed(2)}',
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.success,
@@ -295,7 +295,7 @@ class BookingCard extends ConsumerWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '\$${booking.price.toStringAsFixed(2)}',
+                            '₹${booking.price.toStringAsFixed(2)}',
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppColors.success,

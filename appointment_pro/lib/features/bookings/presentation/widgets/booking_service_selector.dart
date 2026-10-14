@@ -121,7 +121,7 @@ class BookingServiceSelector extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '\$${service.price.toStringAsFixed(2)}',
+                            '₹${service.price.toStringAsFixed(2)}',
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppColors.success,

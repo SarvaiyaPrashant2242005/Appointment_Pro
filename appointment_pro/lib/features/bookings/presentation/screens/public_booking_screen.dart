@@ -496,7 +496,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                         ),
                       ),
                       Text(
-                        '\$${state.selectedService!.price.toStringAsFixed(2)}',
+                        '₹${state.selectedService!.price.toStringAsFixed(2)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.success,
@@ -886,7 +886,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
             ],
           ),
           Text(
-            '\$${service.price.toStringAsFixed(2)}',
+            '₹${service.price.toStringAsFixed(2)}',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: AppColors.success,

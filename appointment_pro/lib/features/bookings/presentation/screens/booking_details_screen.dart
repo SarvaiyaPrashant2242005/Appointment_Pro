@@ -410,7 +410,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                         _buildDetailRow(
                           icon: Icons.payments_outlined,
                           label: 'Total Price',
-                          value: '\$${booking.price.toStringAsFixed(2)}',
+                          value: '₹${booking.price.toStringAsFixed(2)}',
                           valueColor: AppColors.success,
                           context: context,
                         ),

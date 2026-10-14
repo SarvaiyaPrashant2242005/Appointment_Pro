@@ -741,7 +741,7 @@ class _PublicBookingManageScreenState
               _buildRow(
                 icon: Icons.payments_outlined,
                 label: 'Price',
-                value: '\$${booking.price.toStringAsFixed(2)}',
+                value: '₹${booking.price.toStringAsFixed(2)}',
                 valueColor: AppColors.success,
                 isDark: isDark,
               ),

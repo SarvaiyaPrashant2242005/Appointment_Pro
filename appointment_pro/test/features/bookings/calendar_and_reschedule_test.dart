@@ -128,7 +128,7 @@ void main() {
       // Verify details modal contains customer name, phone, price and Full Details button
       expect(find.text('ID: bk_1'), findsOneWidget);
       expect(find.text('Mahesh Patel'), findsWidgets);
-      expect(find.text('Price: \$50.00'), findsOneWidget);
+      expect(find.text('Price: ₹50.00'), findsOneWidget);
       expect(find.text('Full Details'), findsOneWidget);
     });
 

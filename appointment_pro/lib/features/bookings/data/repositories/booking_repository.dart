@@ -9,7 +9,10 @@ class BookingRepository {
   Future<List<BookingModel>> getBookings(String businessId) async {
     final all = await _dataSource.getBookings();
     final businessBookings = all
-        .where((b) => b.businessId == businessId)
+        .where((b) =>
+            businessId.isEmpty ||
+            b.businessId.isEmpty ||
+            b.businessId == businessId)
         .toList();
 
     // Sort by startAt ascending

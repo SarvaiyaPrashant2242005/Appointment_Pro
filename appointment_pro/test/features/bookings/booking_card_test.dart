@@ -41,7 +41,7 @@ void main() {
       // Verify customer name, phone, and price
       expect(find.text('Prashant Sarvaiya'), findsOneWidget);
       expect(find.text('+91 9316163578'), findsOneWidget);
-      expect(find.text('\$50.00'), findsOneWidget);
+      expect(find.text('₹50.00'), findsOneWidget);
 
       // Verify "Mark Completed" button is visible
       final markCompletedButton = find.text('Mark Completed');
