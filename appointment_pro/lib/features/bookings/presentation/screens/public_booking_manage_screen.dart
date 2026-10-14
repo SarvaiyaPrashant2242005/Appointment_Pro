@@ -27,6 +27,8 @@ import '../providers/booking_provider.dart';
 import '../widgets/booking_date_selector.dart';
 import '../widgets/booking_status_chip.dart';
 import '../widgets/booking_time_slots.dart';
+import '../../../notifications/data/models/app_notification_model.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 
 class PublicBookingManageScreen extends ConsumerStatefulWidget {
   final String businessSlug;
@@ -293,7 +295,20 @@ class _PublicBookingManageScreenState
       );
 
       // Refresh owner bookings if active
-      ref.read(bookingsProvider.notifier).refresh();
+      try {
+        ref.read(bookingsProvider.notifier).refresh();
+      } catch (_) {}
+
+      // Dispatch FCM notification to Business Owner (Customer cancelled)
+      try {
+        final notifRepo = ref.read(notificationRepositoryProvider);
+        await notifRepo.dispatchCustomerNotification(
+          type: NotificationType.bookingCancelled,
+          booking: updated,
+          cancellationReason: reason,
+        );
+        ref.read(notificationsProvider.notifier).refresh();
+      } catch (_) {}
 
       if (!mounted) return;
       setState(() {
@@ -1201,6 +1216,17 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
             ? null
             : _reasonController.text.trim(),
       );
+
+      // Dispatch FCM notification to Business Owner (Customer rescheduled)
+      try {
+        final notifRepo = consumerRef.read(notificationRepositoryProvider);
+        await notifRepo.dispatchCustomerNotification(
+          type: NotificationType.bookingRescheduled,
+          booking: updated,
+          oldStartAt: widget.booking.startAt,
+        );
+        consumerRef.read(notificationsProvider.notifier).refresh();
+      } catch (_) {}
 
       if (!mounted) return;
       widget.onRescheduled(updated);

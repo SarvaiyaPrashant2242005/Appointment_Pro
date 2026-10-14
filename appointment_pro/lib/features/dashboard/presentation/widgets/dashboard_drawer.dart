@@ -9,6 +9,7 @@ import '../../../bussiness_setup/presentation/widgets/business_form_sheet.dart';
 import '../../../services/presentation/providers/service_provider.dart';
 import '../../../staff/presentation/providers/staff_provider.dart';
 import '../../../bookings/presentation/providers/booking_provider.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 
 class DashboardDrawer extends ConsumerWidget {
   const DashboardDrawer({super.key});
@@ -22,6 +23,7 @@ class DashboardDrawer extends ConsumerWidget {
     final servicesCount = ref.watch(servicesProvider).asData?.value.length ?? 0;
     final staffCount = ref.watch(staffProvider).asData?.value.length ?? 0;
     final bookingsCount = ref.watch(todayBookingsProvider).length;
+    final unreadNotifsCount = ref.watch(unreadNotificationsCountProvider);
 
     return Drawer(
       backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
@@ -101,6 +103,7 @@ class DashboardDrawer extends ConsumerWidget {
                     context,
                     icon: Icons.design_services_outlined,
                     title: 'Services',
+                    badge: servicesCount,
                     onTap: () => _navigate(context, AppRouter.services),
                   ),
 
@@ -108,12 +111,14 @@ class DashboardDrawer extends ConsumerWidget {
                     context,
                     icon: Icons.people_outline_rounded,
                     title: 'Staff Members',
+                    badge: staffCount,
                     onTap: () => _navigate(context, AppRouter.staff),
                   ),
                   _tile(
                     context,
                     icon: Icons.calendar_today_rounded,
                     title: 'Bookings & Appointments',
+                    badge: bookingsCount,
                     onTap: () => _navigate(context, AppRouter.bookings),
                   ),
                   _tile(
@@ -128,6 +133,13 @@ class DashboardDrawer extends ConsumerWidget {
 
                   _tile(
                     context,
+                    icon: Icons.notifications_outlined,
+                    title: 'Notifications',
+                    badge: unreadNotifsCount,
+                    onTap: () => _navigate(context, AppRouter.notifications),
+                  ),
+                  _tile(
+                    context,
                     icon: Icons.settings_outlined,
                     title: 'Settings',
                     onTap: () =>
@@ -136,7 +148,6 @@ class DashboardDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            // User Footer
           ],
         ),
       ),

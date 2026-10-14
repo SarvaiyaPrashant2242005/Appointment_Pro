@@ -16,6 +16,7 @@ import '../../../bussiness_setup/presentation/widgets/business_form_sheet.dart';
 import '../../../bookings/data/models/booking_model.dart';
 import '../../../bookings/presentation/providers/booking_provider.dart';
 import '../../../bookings/presentation/widgets/booking_card.dart';
+import '../../../notifications/presentation/widgets/notification_badge_button.dart';
 import '../widgets/dashboard_drawer.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -54,6 +55,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
         actions: [
+          const NotificationBadgeButton(),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: _buildBusinessLogoButton(context, ref, activeBusiness),

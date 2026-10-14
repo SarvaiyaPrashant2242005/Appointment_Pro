@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_provider.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -241,7 +243,7 @@ class SettingsScreen extends ConsumerWidget {
                   title: const Text('Notifications'),
                   subtitle: const Text('Reminders, bookings, updates'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () {},
+                  onTap: () => context.push(AppRouter.notifications),
                 ),
                 const Divider(height: 1),
                 ListTile(

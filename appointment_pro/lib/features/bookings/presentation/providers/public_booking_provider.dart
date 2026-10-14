@@ -12,6 +12,8 @@ import '../../data/models/booking_model.dart';
 import '../../data/models/booking_slot_model.dart';
 import '../../data/utils/booking_availability_calculator.dart';
 import '../../data/utils/booking_slug_helper.dart';
+import '../../../notifications/data/models/app_notification_model.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import 'booking_provider.dart';
 
 /// Steps in the public booking wizard
@@ -382,7 +384,19 @@ class PublicBookingNotifier extends Notifier<PublicBookingState> {
       final created = await bookingRepo.createBooking(booking);
 
       // 6. Notify owner bookings provider to refresh if loaded
-      ref.read(bookingsProvider.notifier).refresh();
+      try {
+        ref.read(bookingsProvider.notifier).refresh();
+      } catch (_) {}
+
+      // 7. Dispatch FCM notification to Business Owner (Customer initiated booking)
+      try {
+        final notifRepo = ref.read(notificationRepositoryProvider);
+        await notifRepo.dispatchCustomerNotification(
+          type: NotificationType.newBooking,
+          booking: created,
+        );
+        ref.read(notificationsProvider.notifier).refresh();
+      } catch (_) {}
 
       state = state.copyWith(
         isSubmitting: false,
