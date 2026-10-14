@@ -14,6 +14,10 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/staff/presentation/screens/staff_form_screen.dart';
 import '../../features/staff/presentation/screens/staff_screen.dart';
+import '../../features/bookings/presentation/screens/bookings_screen.dart';
+import '../../features/bookings/presentation/screens/booking_details_screen.dart';
+import '../../features/bookings/presentation/screens/share_booking_screen.dart';
+import '../../features/bookings/presentation/screens/public_booking_screen.dart';
 import '../../navigations/main_navigation.dart';
 
 class AppRouter {
@@ -38,6 +42,12 @@ class AppRouter {
   static const staff = '/staff';
   static const staffCreate = '/staff/create';
   static const staffEdit = '/staff/:id/edit';
+
+  // Bookings Module routes
+  static const bookings = '/bookings';
+  static const bookingDetails = '/bookings/:id';
+  static const shareBooking = '/share-booking';
+  static const publicBooking = '/book/:businessSlug';
 
   static Page<dynamic> _buildSmoothPage({
     required GoRouterState state,
@@ -148,6 +158,38 @@ class AppRouter {
           return _buildSmoothPage(
             state: state,
             child: StaffFormScreen(staffId: id),
+          );
+        },
+      ),
+
+      // Bookings Routes
+      GoRoute(
+        path: bookings,
+        pageBuilder: (context, state) =>
+            _buildSmoothPage(state: state, child: const BookingsScreen()),
+      ),
+      GoRoute(
+        path: bookingDetails,
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return _buildSmoothPage(
+            state: state,
+            child: BookingDetailsScreen(bookingId: id),
+          );
+        },
+      ),
+      GoRoute(
+        path: shareBooking,
+        pageBuilder: (context, state) =>
+            _buildSmoothPage(state: state, child: const ShareBookingScreen()),
+      ),
+      GoRoute(
+        path: publicBooking,
+        pageBuilder: (context, state) {
+          final slug = state.pathParameters['businessSlug'] ?? '';
+          return _buildSmoothPage(
+            state: state,
+            child: PublicBookingScreen(businessSlug: slug),
           );
         },
       ),

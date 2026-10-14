@@ -202,8 +202,9 @@ class TimeOffListController extends AsyncNotifier<List<TimeOffRecord>> {
 
     try {
       await _repository.updateTimeOff(scoped);
-      final updated =
-          previous.map((r) => r.id == scoped.id ? scoped : r).toList();
+      final updated = previous
+          .map((r) => r.id == scoped.id ? scoped : r)
+          .toList();
       state = AsyncData(updated);
     } catch (_) {
       state = AsyncData(previous);

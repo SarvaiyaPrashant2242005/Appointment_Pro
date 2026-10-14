@@ -13,6 +13,9 @@ import '../../../availability/presentation/providers/availability_provider.dart'
 import '../../../bussiness_setup/data/models/business_model.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../../bussiness_setup/presentation/widgets/business_form_sheet.dart';
+import '../../../bookings/data/models/booking_model.dart';
+import '../../../bookings/presentation/providers/booking_provider.dart';
+import '../../../bookings/presentation/widgets/booking_card.dart';
 import '../widgets/dashboard_drawer.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -23,6 +26,13 @@ class DashboardScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final storage = ref.read(localStorageServiceProvider);
+    final todayBookings = ref.watch(todayBookingsProvider);
+    final pendingBookings = todayBookings
+        .where((b) => b.status.isActive)
+        .toList();
+    final completedCount = todayBookings
+        .where((b) => b.status == BookingStatus.completed)
+        .length;
     final activeBusiness = ref.watch(activeBusinessProvider);
     final availabilityAsync = ref.watch(availabilityProvider);
 
@@ -172,6 +182,11 @@ class DashboardScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // 2 State Cards: Completed and Pending
+            _buildStateCards(context, theme, isDark, todayBookings),
+
             const SizedBox(height: 20),
 
             // Section: Today's Appointments
@@ -184,26 +199,33 @@ class DashboardScreen extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkInputFill
-                        : AppColors.inputFill,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.border,
+                GestureDetector(
+                  onTap: () => context.push(AppRouter.bookings),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
                     ),
-                  ),
-                  child: Text(
-                    '0 Scheduled',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkInputFill
+                          : AppColors.inputFill,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.border,
+                      ),
+                    ),
+                    child: Text(
+                      '${pendingBookings.length} Pending',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: pendingBookings.isNotEmpty
+                            ? AppColors.accent
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                      ),
                     ),
                   ),
                 ),
@@ -211,68 +233,344 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
 
-            // Modern Empty Appointments State Card
-            AppCard(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-              child: Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: AppColors.accent.withValues(alpha: 0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.event_available_outlined,
-                        size: 30,
-                        color: AppColors.accent,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No Appointments for Today',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 280),
-                      child: Text(
-                        'Your daily scheduled bookings and walk-ins will appear here with live status tracking.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
-                          ),
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        AppToast.info(
-                          context,
-                          'Booking engine will be available in the next module.',
-                        );
-                      },
-                      icon: const Icon(Icons.add_rounded, size: 16),
-                      label: const Text('Book Appointment'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.accent,
-                        side: const BorderSide(color: AppColors.accent),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
+            if (pendingBookings.isEmpty)
+              // Modern Empty Appointments State Card (Celebrates completion if completedCount > 0)
+              AppCard(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 32,
                 ),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color:
+                              (completedCount > 0
+                                      ? AppColors.success
+                                      : AppColors.accent)
+                                  .withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          completedCount > 0
+                              ? Icons.task_alt_rounded
+                              : Icons.event_available_outlined,
+                          size: 30,
+                          color: completedCount > 0
+                              ? AppColors.success
+                              : AppColors.accent,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        completedCount > 0
+                            ? 'All Caught Up for Today!'
+                            : 'No Appointments for Today',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 280),
+                        child: Text(
+                          completedCount > 0
+                              ? 'You have completed all $completedCount scheduled appointments for today. You can review them in the full appointments calendar.'
+                              : 'Your daily scheduled bookings will appear here. Share your booking link with customers to fill your calendar.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () =>
+                                context.push(AppRouter.shareBooking),
+                            icon: const Icon(Icons.qr_code_2_rounded, size: 16),
+                            label: const Text('Share Link & QR'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.accent,
+                              side: const BorderSide(color: AppColors.accent),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          FilledButton.tonalIcon(
+                            onPressed: () => context.push(AppRouter.bookings),
+                            icon: const Icon(
+                              Icons.calendar_month_rounded,
+                              size: 16,
+                            ),
+                            label: const Text('View All'),
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              // Dynamic list of today's pending appointments (Only pending/active ones)
+              Column(
+                children: [
+                  ...pendingBookings.map(
+                    (booking) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: BookingCard(
+                        booking: booking,
+                        margin: EdgeInsets.zero,
+                        onTap: () => context.push('/bookings/${booking.id}'),
+                        onConfirm: booking.canConfirm
+                            ? () async {
+                                try {
+                                  await ref
+                                      .read(bookingsProvider.notifier)
+                                      .confirmBooking(booking.id);
+                                  if (context.mounted) {
+                                    AppToast.success(
+                                      context,
+                                      'Booking for ${booking.customerName} confirmed.',
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    AppToast.error(
+                                      context,
+                                      'Failed to confirm booking: $e',
+                                    );
+                                  }
+                                }
+                              }
+                            : null,
+                        onComplete: booking.canComplete
+                            ? () async {
+                                try {
+                                  await ref
+                                      .read(bookingsProvider.notifier)
+                                      .completeBooking(booking.id);
+                                  if (context.mounted) {
+                                    AppToast.success(
+                                      context,
+                                      'Appointment for ${booking.customerName} marked as completed!',
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    AppToast.error(
+                                      context,
+                                      'Failed to complete appointment: $e',
+                                    );
+                                  }
+                                }
+                              }
+                            : null,
+                        onCancel: booking.canCancel
+                            ? () async {
+                                final confirmed = await AppConfirmDialog.show(
+                                  context,
+                                  title: 'Cancel Appointment',
+                                  message:
+                                      'Are you sure you want to cancel the appointment for ${booking.customerName}?',
+                                  confirmText: 'Cancel Appointment',
+                                  cancelText: 'Keep',
+                                  isDestructive: true,
+                                );
+                                if (confirmed) {
+                                  try {
+                                    await ref
+                                        .read(bookingsProvider.notifier)
+                                        .cancelBooking(booking.id);
+                                    if (context.mounted) {
+                                      AppToast.info(
+                                        context,
+                                        'Appointment cancelled.',
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      AppToast.error(
+                                        context,
+                                        'Failed to cancel booking: $e',
+                                      );
+                                    }
+                                  }
+                                }
+                              }
+                            : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () => context.push(AppRouter.bookings),
+                      icon: const Icon(Icons.calendar_month, size: 16),
+                      label: const Text('View Full Appointments Calendar'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.accent,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStateCards(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+    List<BookingModel> todayBookings,
+  ) {
+    final completedCount = todayBookings
+        .where((b) => b.status == BookingStatus.completed)
+        .length;
+    final pendingCount = todayBookings
+        .where(
+          (b) =>
+              b.status == BookingStatus.pending ||
+              b.status == BookingStatus.confirmed,
+        )
+        .length;
+
+    return Row(
+      children: [
+        // Completed State Card
+        Expanded(
+          child: _buildSingleStatCard(
+            context: context,
+            theme: theme,
+            isDark: isDark,
+            title: 'Completed',
+            count: completedCount,
+            subtitle: completedCount == 1
+                ? '1 done today'
+                : '$completedCount done today',
+            icon: Icons.task_alt_rounded,
+            accentColor: AppColors.success,
+            onTap: () => context.push(AppRouter.bookings),
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Pending State Card
+        Expanded(
+          child: _buildSingleStatCard(
+            context: context,
+            theme: theme,
+            isDark: isDark,
+            title: 'Pending',
+            count: pendingCount,
+            subtitle: pendingCount == 1
+                ? '1 remaining'
+                : '$pendingCount remaining',
+            icon: Icons.pending_actions_rounded,
+            accentColor: AppColors.warning,
+            onTap: () => context.push(AppRouter.bookings),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSingleStatCard({
+    required BuildContext context,
+    required ThemeData theme,
+    required bool isDark,
+    required String title,
+    required int count,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.border,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 16, color: accentColor),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '$count',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: count > 0
+                    ? accentColor
+                    : (isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.textPrimary),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextSecondary.withValues(alpha: 0.7)
+                    : AppColors.textSecondary.withValues(alpha: 0.7),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

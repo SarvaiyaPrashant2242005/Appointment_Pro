@@ -54,10 +54,8 @@ class BusinessListScreen extends ConsumerWidget {
               final business = items[index];
 
               return AppCard(
-                onTap: () => showBusinessFormSheet(
-                  context,
-                  initialBusiness: business,
-                ),
+                onTap: () =>
+                    showBusinessFormSheet(context, initialBusiness: business),
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(

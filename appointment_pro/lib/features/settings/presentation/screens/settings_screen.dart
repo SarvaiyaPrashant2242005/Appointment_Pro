@@ -265,6 +265,30 @@ class SettingsScreen extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(
+                    Icons.calendar_today_rounded,
+                    color: AppColors.accent,
+                  ),
+                  title: const Text('Appointments & Bookings'),
+                  subtitle: const Text('Manage customer bookings & status'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRouter.bookings),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.qr_code_2_rounded,
+                    color: AppColors.accent,
+                  ),
+                  title: const Text('Online Booking Link & QR Code'),
+                  subtitle: const Text(
+                    'Shareable public booking URL & QR code',
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push(AppRouter.shareBooking),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
                     Icons.design_services_outlined,
                     color: AppColors.accent,
                   ),

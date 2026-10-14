@@ -106,7 +106,10 @@ class _AvailabilityScreenState extends ConsumerState<AvailabilityScreen>
                           if (!ctx.mounted) return;
                           Navigator.pop(ctx);
                           if (!mounted) return;
-                          AppToast.success(context, 'Holiday/Time-off updated.');
+                          AppToast.success(
+                            context,
+                            'Holiday/Time-off updated.',
+                          );
                         } else {
                           await ref
                               .read(timeOffListProvider.notifier)

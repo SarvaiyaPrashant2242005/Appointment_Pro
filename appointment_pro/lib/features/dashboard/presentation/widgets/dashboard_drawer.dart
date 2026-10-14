@@ -8,6 +8,7 @@ import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../../bussiness_setup/presentation/widgets/business_form_sheet.dart';
 import '../../../services/presentation/providers/service_provider.dart';
 import '../../../staff/presentation/providers/staff_provider.dart';
+import '../../../bookings/presentation/providers/booking_provider.dart';
 
 class DashboardDrawer extends ConsumerWidget {
   const DashboardDrawer({super.key});
@@ -20,6 +21,7 @@ class DashboardDrawer extends ConsumerWidget {
 
     final servicesCount = ref.watch(servicesProvider).asData?.value.length ?? 0;
     final staffCount = ref.watch(staffProvider).asData?.value.length ?? 0;
+    final bookingsCount = ref.watch(todayBookingsProvider).length;
 
     return Drawer(
       backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
@@ -91,6 +93,21 @@ class DashboardDrawer extends ConsumerWidget {
 
                   _tile(
                     context,
+                    icon: Icons.calendar_today_rounded,
+                    title: 'Bookings & Appointments',
+                    badge: bookingsCount,
+                    onTap: () => _navigate(context, AppRouter.bookings),
+                  ),
+
+                  _tile(
+                    context,
+                    icon: Icons.qr_code_2_rounded,
+                    title: 'Share Booking Page & QR',
+                    onTap: () => _navigate(context, AppRouter.shareBooking),
+                  ),
+
+                  _tile(
+                    context,
                     icon: Icons.design_services_outlined,
                     title: 'Services',
                     badge: servicesCount,
@@ -108,7 +125,7 @@ class DashboardDrawer extends ConsumerWidget {
                   _tile(
                     context,
                     icon: Icons.access_time_rounded,
-                    title: 'Bussiness Availability',
+                    title: 'Business Availability',
                     onTap: () => _navigate(context, AppRouter.availability),
                   ),
                   const SizedBox(height: 12),

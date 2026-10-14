@@ -49,10 +49,7 @@ class _BusinessFormBottomSheetState
       padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
       child: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: 600,
-            maxHeight: maxHeight,
-          ),
+          constraints: BoxConstraints(maxWidth: 600, maxHeight: maxHeight),
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkSurface : Colors.white,
@@ -96,7 +93,9 @@ class _BusinessFormBottomSheetState
                                 width: 36,
                                 height: 36,
                                 decoration: BoxDecoration(
-                                  color: AppColors.accent.withValues(alpha: 0.15),
+                                  color: AppColors.accent.withValues(
+                                    alpha: 0.15,
+                                  ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Icon(
@@ -107,7 +106,9 @@ class _BusinessFormBottomSheetState
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                isEditing ? 'Edit Business' : 'Add New Business',
+                                isEditing
+                                    ? 'Edit Business'
+                                    : 'Add New Business',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 17,
@@ -142,7 +143,7 @@ class _BusinessFormBottomSheetState
                           if (isEditing) {
                             await ref
                                 .read(businessProvider.notifier)
-                                  .updateBusiness(business);
+                                .updateBusiness(business);
                             if (!context.mounted) return;
                             Navigator.pop(context);
                             AppToast.success(

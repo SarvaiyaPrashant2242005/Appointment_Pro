@@ -58,7 +58,9 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
     _type = (b != null && _types.contains(b.type))
         ? b.type
         : (b != null ? 'Other' : 'Salon / Beauty');
-    if (b != null && !_types.contains(b.type) && (b.otherType == null || b.otherType!.isEmpty)) {
+    if (b != null &&
+        !_types.contains(b.type) &&
+        (b.otherType == null || b.otherType!.isEmpty)) {
       _otherType.text = b.type;
     }
     _countryCode = b?.countryCode ?? '+91';
