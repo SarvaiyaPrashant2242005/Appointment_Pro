@@ -31,6 +31,7 @@ class BookingRepository {
     String bookingId,
     BookingStatus newStatus, {
     String? cancellationReason,
+    DateTime? cancelledAt,
   }) async {
     final booking = await getBookingById(bookingId);
     if (booking == null) {
@@ -44,20 +45,74 @@ class BookingRepository {
     if (booking.status == BookingStatus.completed) {
       throw Exception('Completed bookings cannot be modified.');
     }
-
-    if (newStatus == BookingStatus.confirmed && !booking.canConfirm) {
-      throw Exception('Only pending bookings can be confirmed.');
+    if (booking.status == BookingStatus.noShow) {
+      throw Exception('No-show bookings cannot be modified.');
     }
+
     if (newStatus == BookingStatus.completed && !booking.canComplete) {
       throw Exception('Only confirmed bookings can be marked as completed.');
     }
     if (newStatus == BookingStatus.noShow && !booking.canMarkNoShow) {
       throw Exception('Only confirmed bookings can be marked as no-show.');
     }
+    if (newStatus == BookingStatus.cancelled && !booking.canCancel) {
+      throw Exception('This booking cannot be cancelled.');
+    }
 
+    final isCancelling = newStatus == BookingStatus.cancelled;
     final updated = booking.copyWith(
       status: newStatus,
+      cancellationReason: isCancelling
+          ? (cancellationReason ?? booking.cancellationReason)
+          : booking.cancellationReason,
+      cancelledAt: isCancelling
+          ? (cancelledAt ?? booking.cancelledAt ?? DateTime.now())
+          : booking.cancelledAt,
       updatedAt: DateTime.now(),
+    );
+
+    await _dataSource.updateBooking(updated);
+    return updated;
+  }
+
+  /// Reschedules an existing booking, preserving the booking ID and customer details
+  Future<BookingModel> rescheduleBooking({
+    required String bookingId,
+    required DateTime newStartAt,
+    required DateTime newEndAt,
+    String? newStaffId,
+    String? newStaffName,
+    String? reason,
+  }) async {
+    final booking = await getBookingById(bookingId);
+    if (booking == null) {
+      throw Exception('Booking not found');
+    }
+
+    if (!booking.canReschedule) {
+      throw Exception(
+        'Only active bookings can be rescheduled. This booking is ${booking.status.displayName.toLowerCase()}.',
+      );
+    }
+
+    final historyRecord = RescheduleRecord(
+      previousStartAt: booking.startAt,
+      previousEndAt: booking.endAt,
+      newStartAt: newStartAt,
+      newEndAt: newEndAt,
+      rescheduledAt: DateTime.now(),
+      previousStaffId: booking.staffId,
+      newStaffId: newStaffId ?? booking.staffId,
+      reason: reason,
+    );
+
+    final updated = booking.copyWith(
+      startAt: newStartAt,
+      endAt: newEndAt,
+      staffId: newStaffId ?? booking.staffId,
+      staffName: newStaffName ?? booking.staffName,
+      updatedAt: DateTime.now(),
+      rescheduleHistory: [...booking.rescheduleHistory, historyRecord],
     );
 
     await _dataSource.updateBooking(updated);

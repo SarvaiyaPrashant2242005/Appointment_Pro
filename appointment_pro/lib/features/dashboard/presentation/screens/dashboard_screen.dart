@@ -216,7 +216,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     child: Text(
-                      '${pendingBookings.length} Pending',
+                      '${pendingBookings.length} Upcoming',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -446,12 +446,8 @@ class DashboardScreen extends ConsumerWidget {
     final completedCount = todayBookings
         .where((b) => b.status == BookingStatus.completed)
         .length;
-    final pendingCount = todayBookings
-        .where(
-          (b) =>
-              b.status == BookingStatus.pending ||
-              b.status == BookingStatus.confirmed,
-        )
+    final upcomingCount = todayBookings
+        .where((b) => b.status == BookingStatus.confirmed)
         .length;
 
     return Row(
@@ -473,19 +469,19 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 12),
-        // Pending State Card
+        // Upcoming State Card
         Expanded(
           child: _buildSingleStatCard(
             context: context,
             theme: theme,
             isDark: isDark,
-            title: 'Pending',
-            count: pendingCount,
-            subtitle: pendingCount == 1
+            title: 'Upcoming',
+            count: upcomingCount,
+            subtitle: upcomingCount == 1
                 ? '1 remaining'
-                : '$pendingCount remaining',
-            icon: Icons.pending_actions_rounded,
-            accentColor: AppColors.warning,
+                : '$upcomingCount remaining',
+            icon: Icons.event_available_rounded,
+            accentColor: AppColors.accent,
             onTap: () => context.push(AppRouter.bookings),
           ),
         ),

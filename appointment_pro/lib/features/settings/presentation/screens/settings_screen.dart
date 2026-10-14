@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_provider.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../bussiness_setup/presentation/providers/business_provider.dart';
-import '../../../bussiness_setup/presentation/widgets/business_form_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -199,7 +195,6 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final activeBusiness = ref.watch(activeBusinessProvider);
     final currentThemeMode = ref.watch(themeModeProvider);
 
     final String themeSubtitle;
@@ -224,106 +219,6 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
-          // Section: Business
-          Text(
-            'BUSINESS',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(
-                    Icons.storefront_outlined,
-                    color: AppColors.accent,
-                  ),
-                  title: const Text('Manage Businesses'),
-                  subtitle: Text(
-                    activeBusiness != null
-                        ? 'Active: ${activeBusiness.name}'
-                        : 'Configure or add businesses',
-                  ),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.go(AppRouter.businessList),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.add_business_outlined,
-                    color: AppColors.accent,
-                  ),
-                  title: const Text('Add New Business'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => showBusinessFormSheet(context),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.calendar_today_rounded,
-                    color: AppColors.accent,
-                  ),
-                  title: const Text('Appointments & Bookings'),
-                  subtitle: const Text('Manage customer bookings & status'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push(AppRouter.bookings),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.qr_code_2_rounded,
-                    color: AppColors.accent,
-                  ),
-                  title: const Text('Online Booking Link & QR Code'),
-                  subtitle: const Text(
-                    'Shareable public booking URL & QR code',
-                  ),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push(AppRouter.shareBooking),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.design_services_outlined,
-                    color: AppColors.accent,
-                  ),
-                  title: const Text('Services & Catalog'),
-                  subtitle: const Text('Manage prices, duration & buffers'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push(AppRouter.services),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.people_outline_rounded,
-                    color: AppColors.accent,
-                  ),
-                  title: const Text('Staff Members'),
-                  subtitle: const Text('Team profiles & service assignments'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push(AppRouter.staff),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.access_time_rounded,
-                    color: AppColors.accent,
-                  ),
-                  title: const Text('Hours & Availability'),
-                  subtitle: const Text('Working hours, breaks & holidays'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push(AppRouter.availability),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
           // Section: Preferences
           Text(
             'PREFERENCES',

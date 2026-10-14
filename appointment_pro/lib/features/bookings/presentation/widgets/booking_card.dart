@@ -37,14 +37,16 @@ class BookingCard extends ConsumerWidget {
     final service = services
         .where((s) => s.id == booking.serviceId)
         .firstOrNull;
-    final serviceTitle = service?.name ?? 'Service #${booking.serviceId}';
+    final serviceTitle =
+        service?.name ?? booking.serviceName ?? 'Service';
 
     // Resolve staff name
     final staffList = ref.watch(staffProvider).value ?? [];
     final staff = staffList.where((s) => s.id == booking.staffId).firstOrNull;
     final staffName =
         staff?.name ??
-        (booking.staffId != null ? 'Staff #${booking.staffId}' : 'Unassigned');
+        booking.staffName ??
+        (booking.staffId != null ? 'Specialist' : 'Unassigned');
 
     // Date and time formatting
     final timeFormat = DateFormat('h:mm a');

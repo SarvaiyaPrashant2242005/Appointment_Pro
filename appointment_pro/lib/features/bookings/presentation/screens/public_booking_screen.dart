@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_empty_view.dart';
@@ -12,6 +14,7 @@ import '../providers/public_booking_provider.dart';
 import '../widgets/booking_date_selector.dart';
 import '../widgets/booking_service_selector.dart';
 import '../widgets/booking_staff_selector.dart';
+import '../widgets/booking_status_chip.dart';
 import '../widgets/booking_time_slots.dart';
 import '../widgets/customer_details_form.dart';
 
@@ -101,6 +104,13 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
             ],
           ),
           actions: [
+            TextButton.icon(
+              icon: const Icon(Icons.manage_search_rounded, size: 18),
+              label: const Text('Manage Booking'),
+              onPressed: () {
+                context.push('/book/${widget.businessSlug}/manage');
+              },
+            ),
             if (state.currentStep != PublicBookingStep.success)
               TextButton(
                 onPressed: () => notifier.resetFlow(),
@@ -629,7 +639,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.15),
+                color: AppColors.success.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -659,63 +669,183 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
             const SizedBox(height: 24),
 
             // Confirmation Ticket Card
-            if (booking != null)
+            if (booking != null) ...[
               AppCard(
                 padding: const EdgeInsets.all(20),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Booking Reference',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Booking ID',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            SelectableText(
+                              booking.id,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.accent,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          booking.id,
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppColors.accent,
-                          ),
-                        ),
+                        BookingStatusChip(status: booking.status),
                       ],
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: booking.id));
+                        AppToast.info(
+                          context,
+                          'Booking ID copied to clipboard',
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 2,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.copy_rounded,
+                              size: 14,
+                              color: AppColors.accent,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Copy Booking ID',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.accent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
                       child: Divider(height: 1),
                     ),
                     _buildReviewRow(
-                      icon: Icons.calendar_today_rounded,
-                      label: 'Date & Time',
+                      icon: Icons.content_cut_rounded,
+                      label: 'Service',
                       value:
-                          '${DateFormat('EEE, MMM d, yyyy').format(booking.startAt)}\n${DateFormat('h:mm a').format(booking.startAt)} - ${DateFormat('h:mm a').format(booking.endAt)}',
+                          state.selectedService?.name ??
+                          (booking.serviceName ?? 'Service'),
                     ),
                     const SizedBox(height: 12),
                     _buildReviewRow(
-                      icon: Icons.content_cut_rounded,
-                      label: 'Service',
-                      value: state.selectedService?.name ?? 'Appointment',
+                      icon: Icons.storefront_rounded,
+                      label: 'Business',
+                      value: state.business!.name,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildReviewRow(
+                      icon: Icons.calendar_today_rounded,
+                      label: 'Appointment Date & Time',
+                      value:
+                          '${DateFormat('EEEE, MMMM d, yyyy').format(booking.startAt)}\n${DateFormat('h:mm a').format(booking.startAt)} - ${DateFormat('h:mm a').format(booking.endAt)}',
                     ),
                     const SizedBox(height: 12),
                     _buildReviewRow(
                       icon: Icons.badge_outlined,
-                      label: 'Guest Name',
+                      label: 'Customer Name',
                       value: booking.customerName,
+                    ),
+                    if (booking.staffName != null ||
+                        state.selectedStaff != null) ...[
+                      const SizedBox(height: 12),
+                      _buildReviewRow(
+                        icon: Icons.person_rounded,
+                        label: 'Specialist',
+                        value:
+                            state.selectedStaff?.name ??
+                            booking.staffName ??
+                            'Staff Specialist',
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Important customer notice
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(
+                    alpha: isDark ? 0.12 : 0.08,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.accent.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Important: Please save your Booking ID. You will need your Booking ID and phone number to look up, reschedule, or cancel your appointment.',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          height: 1.4,
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.textPrimary,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
-            AppButton(
-              label: 'Book Another Appointment',
-              icon: Icons.refresh_rounded,
+              // Manage / Reschedule Booking primary action
+              AppButton(
+                label: 'Manage or Reschedule Booking',
+                icon: Icons.edit_calendar_rounded,
+                onPressed: () {
+                  context.push(
+                    '/book/${widget.businessSlug}/manage?bookingId=${booking.id}',
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            OutlinedButton.icon(
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Book Another Appointment'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
               onPressed: () => notifier.resetFlow(),
             ),
             const SizedBox(height: 12),

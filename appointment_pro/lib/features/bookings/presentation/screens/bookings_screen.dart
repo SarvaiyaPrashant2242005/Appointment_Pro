@@ -8,10 +8,15 @@ import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../core/widgets/app_empty_view.dart';
 import '../../../../core/widgets/app_error_view.dart';
 import '../../../../core/widgets/app_loader.dart';
+import '../../../availability/presentation/providers/availability_provider.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
+import '../../../services/presentation/providers/service_provider.dart';
+import '../../../staff/presentation/providers/staff_provider.dart';
 import '../../data/models/booking_model.dart';
 import '../providers/booking_provider.dart';
 import '../widgets/booking_card.dart';
+import '../widgets/booking_calendar_view.dart';
+import '../widgets/booking_reschedule_sheet.dart';
 
 class BookingsScreen extends ConsumerStatefulWidget {
   const BookingsScreen({super.key});
@@ -22,6 +27,7 @@ class BookingsScreen extends ConsumerStatefulWidget {
 
 class _BookingsScreenState extends ConsumerState<BookingsScreen> {
   final _searchController = TextEditingController();
+  bool _isCalendarView = false;
 
   @override
   void dispose() {
@@ -80,6 +86,71 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
     }
   }
 
+  Future<void> _handleReschedule(BookingModel booking) async {
+    try {
+      final activeBusiness = ref.read(activeBusinessProvider);
+      final businessRepo = ref.read(businessRepositoryProvider);
+      final serviceRepo = ref.read(serviceRepositoryProvider);
+      final staffRepo = ref.read(staffRepositoryProvider);
+      final availRepo = ref.read(availabilityRepositoryProvider);
+      final bookingRepo = ref.read(bookingRepositoryProvider);
+
+      final businesses = await businessRepo.getBusinesses();
+      final business = businesses.where((b) => b.id == booking.businessId).firstOrNull ??
+          activeBusiness;
+
+      if (business == null) {
+        if (!mounted) return;
+        AppToast.error(context, 'Business details could not be found.');
+        return;
+      }
+
+      final services = await serviceRepo.getServices(business.id);
+      final service =
+          services.where((s) => s.id == booking.serviceId).firstOrNull;
+
+      if (service == null) {
+        if (!mounted) return;
+        AppToast.error(
+          context,
+          'Service details could not be found for rescheduling.',
+        );
+        return;
+      }
+
+      final allStaff = await staffRepo.getStaff(business.id);
+      final avail = await availRepo.getBusinessAvailability(business.id);
+      final timeOffList = await availRepo.getTimeOffRecords(business.id);
+      final existingBookings = await bookingRepo.getBookings(business.id);
+
+      final eligibleStaff = allStaff.where((s) {
+        if (!s.isActive) return false;
+        if (s.assignedServiceIds.isEmpty) return true;
+        return s.assignedServiceIds.contains(service.id);
+      }).toList();
+
+      if (!mounted) return;
+
+      final updated = await BookingRescheduleSheet.show(
+        context: context,
+        booking: booking,
+        business: business,
+        service: service,
+        eligibleStaff: eligibleStaff,
+        availability: avail,
+        timeOffList: timeOffList,
+        existingBookings: existingBookings,
+      );
+
+      if (updated != null && mounted) {
+        ref.read(bookingsProvider.notifier).refresh();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.error(context, 'Failed to open reschedule: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -127,6 +198,18 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: _isCalendarView
+                ? 'Switch to List View'
+                : 'Switch to Calendar View',
+            icon: Icon(
+              _isCalendarView
+                  ? Icons.view_agenda_rounded
+                  : Icons.calendar_month_rounded,
+              color: _isCalendarView ? AppColors.accent : null,
+            ),
+            onPressed: () => setState(() => _isCalendarView = !_isCalendarView),
+          ),
           IconButton(
             tooltip: 'Share Booking Page & QR',
             icon: const Icon(Icons.qr_code_2_rounded),
@@ -232,11 +315,11 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
                       ),
                     ),
 
-                    // Segmented Tabs: Today, Upcoming, Past
+                    // View Mode Switcher: List View | Calendar View
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 6,
+                        vertical: 4,
                       ),
                       child: Container(
                         padding: const EdgeInsets.all(4),
@@ -244,7 +327,7 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
                           color: isDark
                               ? AppColors.darkSurface
                               : AppColors.inputFill,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: isDark
                                 ? AppColors.darkBorder
@@ -253,102 +336,249 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
                         ),
                         child: Row(
                           children: [
-                            _buildTabItem(
-                              label: 'Today',
-                              count: todayCount,
-                              tab: BookingListTab.today,
-                              isActive: activeTab == BookingListTab.today,
+                            Expanded(
+                              child: InkWell(
+                                onTap: () =>
+                                    setState(() => _isCalendarView = false),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: !_isCalendarView
+                                        ? (isDark
+                                            ? AppColors.accent
+                                            : AppColors.primary)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.view_agenda_rounded,
+                                        size: 16,
+                                        color: !_isCalendarView
+                                            ? (isDark
+                                                ? Colors.black
+                                                : Colors.white)
+                                            : (isDark
+                                                ? AppColors.darkTextSecondary
+                                                : AppColors.textSecondary),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'List View',
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: !_isCalendarView
+                                              ? FontWeight.bold
+                                              : FontWeight.w500,
+                                          color: !_isCalendarView
+                                              ? (isDark
+                                                  ? Colors.black
+                                                  : Colors.white)
+                                              : (isDark
+                                                  ? AppColors.darkTextSecondary
+                                                  : AppColors.textSecondary),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                            _buildTabItem(
-                              label: 'Upcoming',
-                              count: upcomingCount,
-                              tab: BookingListTab.upcoming,
-                              isActive: activeTab == BookingListTab.upcoming,
-                            ),
-                            _buildTabItem(
-                              label: 'Past',
-                              count: pastCount,
-                              tab: BookingListTab.past,
-                              isActive: activeTab == BookingListTab.past,
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () =>
+                                    setState(() => _isCalendarView = true),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: _isCalendarView
+                                        ? (isDark
+                                            ? AppColors.accent
+                                            : AppColors.primary)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_month_rounded,
+                                        size: 16,
+                                        color: _isCalendarView
+                                            ? (isDark
+                                                ? Colors.black
+                                                : Colors.white)
+                                            : (isDark
+                                                ? AppColors.darkTextSecondary
+                                                : AppColors.textSecondary),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Calendar View',
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: _isCalendarView
+                                              ? FontWeight.bold
+                                              : FontWeight.w500,
+                                          color: _isCalendarView
+                                              ? (isDark
+                                                  ? Colors.black
+                                                  : Colors.white)
+                                              : (isDark
+                                                  ? AppColors.darkTextSecondary
+                                                  : AppColors.textSecondary),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
 
-                    // Status Filters Strip
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
+                    if (_isCalendarView) ...[
+                      // Calendar View with colored count dots and Google Calendar-style details
+                      Expanded(
+                        child: BookingCalendarView(
+                          bookings: allBookings,
+                          onBookingTap: (booking) =>
+                              context.push('/bookings/${booking.id}'),
+                          onConfirm: _handleConfirm,
+                          onComplete: _handleComplete,
+                          onCancel: _handleCancel,
+                          onReschedule: _handleReschedule,
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          _buildFilterChip(
-                            label: 'All',
-                            isSelected: statusFilter == null,
-                            onTap: () {
-                              ref
-                                  .read(bookingStatusFilterProvider.notifier)
-                                  .setFilter(null);
-                            },
+                    ] else ...[
+                      // Segmented Tabs: Today, Upcoming, Past
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkSurface
+                                : AppColors.inputFill,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.border,
+                            ),
                           ),
-                          const SizedBox(width: 6),
-                          ...BookingStatus.values.map((status) {
-                            final isSelected = statusFilter == status;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: _buildFilterChip(
-                                label: status.displayLabel,
-                                isSelected: isSelected,
-                                activeColor: status.color,
-                                onTap: () {
-                                  ref
-                                      .read(
-                                        bookingStatusFilterProvider.notifier,
-                                      )
-                                      .setFilter(isSelected ? null : status);
-                                },
+                          child: Row(
+                            children: [
+                              _buildTabItem(
+                                label: 'Today',
+                                count: todayCount,
+                                tab: BookingListTab.today,
+                                isActive: activeTab == BookingListTab.today,
                               ),
-                            );
-                          }),
-                        ],
+                              _buildTabItem(
+                                label: 'Upcoming',
+                                count: upcomingCount,
+                                tab: BookingListTab.upcoming,
+                                isActive: activeTab == BookingListTab.upcoming,
+                              ),
+                              _buildTabItem(
+                                label: 'Past',
+                                count: pastCount,
+                                tab: BookingListTab.past,
+                                isActive: activeTab == BookingListTab.past,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
 
-                    const Divider(height: 1),
-
-                    // Bookings List
-                    Expanded(
-                      child: filteredBookings.isEmpty
-                          ? AppEmptyView(
-                              icon: Icons.calendar_today_outlined,
-                              title: _getEmptyTitle(activeTab),
-                              message: _getEmptyMessage(activeTab),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              itemCount: filteredBookings.length,
-                              itemBuilder: (context, index) {
-                                final booking = filteredBookings[index];
-                                return BookingCard(
-                                  booking: booking,
-                                  onTap: () =>
-                                      context.push('/bookings/${booking.id}'),
-                                  onConfirm: booking.canConfirm
-                                      ? () => _handleConfirm(booking)
-                                      : null,
-                                  onComplete: booking.canComplete
-                                      ? () => _handleComplete(booking)
-                                      : null,
-                                  onCancel: booking.canCancel
-                                      ? () => _handleCancel(booking)
-                                      : null,
-                                );
+                      // Status Filters Strip
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
+                        ),
+                        child: Row(
+                          children: [
+                            _buildFilterChip(
+                              label: 'All',
+                              isSelected: statusFilter == null,
+                              onTap: () {
+                                ref
+                                    .read(bookingStatusFilterProvider.notifier)
+                                    .setFilter(null);
                               },
                             ),
-                    ),
+                            const SizedBox(width: 6),
+                            ...BookingStatus.values.map((status) {
+                              final isSelected = statusFilter == status;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: _buildFilterChip(
+                                  label: status.displayLabel,
+                                  isSelected: isSelected,
+                                  activeColor: status.color,
+                                  onTap: () {
+                                    ref
+                                        .read(
+                                          bookingStatusFilterProvider.notifier,
+                                        )
+                                        .setFilter(isSelected ? null : status);
+                                  },
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+
+                      const Divider(height: 1),
+
+                      // Bookings List
+                      Expanded(
+                        child: filteredBookings.isEmpty
+                            ? AppEmptyView(
+                                icon: Icons.calendar_today_outlined,
+                                title: _getEmptyTitle(activeTab),
+                                message: _getEmptyMessage(activeTab),
+                              )
+                            : ListView.builder(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                itemCount: filteredBookings.length,
+                                itemBuilder: (context, index) {
+                                  final booking = filteredBookings[index];
+                                  return BookingCard(
+                                    booking: booking,
+                                    onTap: () =>
+                                        context.push('/bookings/${booking.id}'),
+                                    onConfirm: booking.canConfirm
+                                        ? () => _handleConfirm(booking)
+                                        : null,
+                                    onComplete: booking.canComplete
+                                        ? () => _handleComplete(booking)
+                                        : null,
+                                    onCancel: booking.canCancel
+                                        ? () => _handleCancel(booking)
+                                        : null,
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                   ],
                 ),
               ),

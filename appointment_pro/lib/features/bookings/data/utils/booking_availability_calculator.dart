@@ -17,6 +17,7 @@ class BookingAvailabilityCalculator {
     required List<BookingModel> existingBookings,
     List<TimeOffRecord> timeOffList = const [],
     String? selectedStaffId,
+    String? ignoreBookingId,
   }) {
     return calculateAvailableSlots(
       date: date,
@@ -26,6 +27,7 @@ class BookingAvailabilityCalculator {
       eligibleStaff: eligibleStaff,
       existingBookings: existingBookings,
       requestedStaffId: selectedStaffId,
+      ignoreBookingId: ignoreBookingId,
     );
   }
 
@@ -38,6 +40,7 @@ class BookingAvailabilityCalculator {
     required List<StaffModel> eligibleStaff,
     required List<BookingModel> existingBookings,
     String? requestedStaffId,
+    String? ignoreBookingId,
     int stepMinutes = 15,
     DateTime? now,
   }) {
@@ -149,6 +152,9 @@ class BookingAvailabilityCalculator {
 
         // c) Conflict check against existing active bookings
         final hasConflict = existingBookings.any((booking) {
+          if (ignoreBookingId != null && booking.id == ignoreBookingId) {
+            return false;
+          }
           if (booking.staffId != staff.id) return false;
           if (booking.status == BookingStatus.cancelled) return false;
 
@@ -187,9 +193,11 @@ class BookingAvailabilityCalculator {
     required int bufferMinutes,
     required String staffId,
     required List<BookingModel> existingBookings,
+    String? ignoreBookingId,
   }) {
     final bufferEnd = endAt.add(Duration(minutes: bufferMinutes));
     return !existingBookings.any((b) {
+      if (ignoreBookingId != null && b.id == ignoreBookingId) return false;
       if (b.staffId != staffId) return false;
       if (b.status == BookingStatus.cancelled) return false;
       return startAt.isBefore(b.endAt) && bufferEnd.isAfter(b.startAt);

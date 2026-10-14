@@ -27,12 +27,12 @@ class BookingDateSelector extends StatelessWidget {
     );
 
     return SizedBox(
-      height: 80,
+      height: 92,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 4),
         itemCount: dates.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final date = dates[index];
           final isSelected =
@@ -47,8 +47,8 @@ class BookingDateSelector extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              width: 62,
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              width: 68,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.accent
@@ -63,57 +63,69 @@ class BookingDateSelector extends StatelessWidget {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppColors.accent.withOpacity(0.3),
+                          color: AppColors.accent.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
                       ]
                     : null,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    isToday ? 'Today' : DateFormat('EEE').format(date),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
-                      color: isSelected
-                          ? Colors.black
-                          : (isDark
-                                ? AppColors.darkTextSecondary
-                                : AppColors.textSecondary),
-                    ),
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        isToday ? 'Today' : DateFormat('EEE').format(date),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? Colors.black
+                              : (isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.textSecondary),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${date.day}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? Colors.black
+                              : (isDark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.textPrimary),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        DateFormat('MMM').format(date),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected
+                              ? Colors.black87
+                              : (isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.textSecondary),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${date.day}',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? Colors.black
-                          : (isDark
-                                ? AppColors.darkTextPrimary
-                                : AppColors.textPrimary),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    DateFormat('MMM').format(date),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: isSelected
-                          ? Colors.black87
-                          : (isDark
-                                ? AppColors.darkTextSecondary
-                                : AppColors.textSecondary),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           );

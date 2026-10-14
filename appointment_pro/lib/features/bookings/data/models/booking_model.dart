@@ -3,22 +3,19 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 
 enum BookingStatus {
-  pending,
   confirmed,
-  cancelled,
   completed,
+  cancelled,
   noShow;
 
   String get displayName {
     switch (this) {
-      case BookingStatus.pending:
-        return 'Pending';
       case BookingStatus.confirmed:
         return 'Confirmed';
-      case BookingStatus.cancelled:
-        return 'Cancelled';
       case BookingStatus.completed:
         return 'Completed';
+      case BookingStatus.cancelled:
+        return 'Cancelled';
       case BookingStatus.noShow:
         return 'No Show';
     }
@@ -28,8 +25,6 @@ enum BookingStatus {
 
   Color get color {
     switch (this) {
-      case BookingStatus.pending:
-        return AppColors.warning;
       case BookingStatus.confirmed:
         return AppColors.accent;
       case BookingStatus.completed:
@@ -41,8 +36,7 @@ enum BookingStatus {
     }
   }
 
-  bool get isActive =>
-      this == BookingStatus.pending || this == BookingStatus.confirmed;
+  bool get isActive => this == BookingStatus.confirmed;
 
   bool get isFinal =>
       this == BookingStatus.completed ||
@@ -50,10 +44,58 @@ enum BookingStatus {
       this == BookingStatus.noShow;
 
   static BookingStatus fromString(String? value) {
-    if (value == null) return BookingStatus.pending;
+    if (value == null || value.toLowerCase() == 'pending') {
+      return BookingStatus.confirmed;
+    }
     return BookingStatus.values.firstWhere(
       (e) => e.name.toLowerCase() == value.toLowerCase(),
-      orElse: () => BookingStatus.pending,
+      orElse: () => BookingStatus.confirmed,
+    );
+  }
+}
+
+class RescheduleRecord {
+  final DateTime previousStartAt;
+  final DateTime previousEndAt;
+  final DateTime newStartAt;
+  final DateTime newEndAt;
+  final DateTime rescheduledAt;
+  final String? previousStaffId;
+  final String? newStaffId;
+  final String? reason;
+
+  const RescheduleRecord({
+    required this.previousStartAt,
+    required this.previousEndAt,
+    required this.newStartAt,
+    required this.newEndAt,
+    required this.rescheduledAt,
+    this.previousStaffId,
+    this.newStaffId,
+    this.reason,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'previousStartAt': previousStartAt.toIso8601String(),
+    'previousEndAt': previousEndAt.toIso8601String(),
+    'newStartAt': newStartAt.toIso8601String(),
+    'newEndAt': newEndAt.toIso8601String(),
+    'rescheduledAt': rescheduledAt.toIso8601String(),
+    'previousStaffId': previousStaffId,
+    'newStaffId': newStaffId,
+    'reason': reason,
+  };
+
+  factory RescheduleRecord.fromJson(Map<String, dynamic> json) {
+    return RescheduleRecord(
+      previousStartAt: DateTime.parse(json['previousStartAt'] as String),
+      previousEndAt: DateTime.parse(json['previousEndAt'] as String),
+      newStartAt: DateTime.parse(json['newStartAt'] as String),
+      newEndAt: DateTime.parse(json['newEndAt'] as String),
+      rescheduledAt: DateTime.parse(json['rescheduledAt'] as String),
+      previousStaffId: json['previousStaffId'] as String?,
+      newStaffId: json['newStaffId'] as String?,
+      reason: json['reason'] as String?,
     );
   }
 }
@@ -72,6 +114,9 @@ class BookingModel {
   final DateTime endAt;
   final double price;
   final BookingStatus status;
+  final String? cancellationReason;
+  final DateTime? cancelledAt;
+  final List<RescheduleRecord> rescheduleHistory;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -92,7 +137,10 @@ class BookingModel {
     required this.startAt,
     required this.endAt,
     required this.price,
-    this.status = BookingStatus.pending,
+    this.status = BookingStatus.confirmed,
+    this.cancellationReason,
+    this.cancelledAt,
+    this.rescheduleHistory = const [],
     DateTime? createdAt,
     DateTime? updatedAt,
     this.serviceName,
@@ -109,11 +157,11 @@ class BookingModel {
     return '$code $phone';
   }
 
-  bool get canConfirm => status == BookingStatus.pending;
-  bool get canCancel =>
-      status == BookingStatus.pending || status == BookingStatus.confirmed;
+  bool get canConfirm => false;
+  bool get canCancel => status == BookingStatus.confirmed;
   bool get canComplete => status == BookingStatus.confirmed;
   bool get canMarkNoShow => status == BookingStatus.confirmed;
+  bool get canReschedule => status == BookingStatus.confirmed;
   bool get isCompleted => status == BookingStatus.completed;
   bool get isCancelled => status == BookingStatus.cancelled;
 
@@ -131,6 +179,9 @@ class BookingModel {
     DateTime? endAt,
     double? price,
     BookingStatus? status,
+    String? cancellationReason,
+    DateTime? cancelledAt,
+    List<RescheduleRecord>? rescheduleHistory,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? serviceName,
@@ -150,6 +201,9 @@ class BookingModel {
       endAt: endAt ?? this.endAt,
       price: price ?? this.price,
       status: status ?? this.status,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
+      cancelledAt: cancelledAt ?? this.cancelledAt,
+      rescheduleHistory: rescheduleHistory ?? this.rescheduleHistory,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       serviceName: serviceName ?? this.serviceName,
@@ -171,6 +225,9 @@ class BookingModel {
     'endAt': endAt.toIso8601String(),
     'price': price,
     'status': status.name,
+    'cancellationReason': cancellationReason,
+    'cancelledAt': cancelledAt?.toIso8601String(),
+    'rescheduleHistory': rescheduleHistory.map((r) => r.toJson()).toList(),
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
     'serviceName': serviceName,
@@ -192,6 +249,15 @@ class BookingModel {
       endAt: DateTime.parse(json['endAt'] as String),
       price: (json['price'] as num).toDouble(),
       status: BookingStatus.fromString(json['status'] as String?),
+      cancellationReason: json['cancellationReason'] as String?,
+      cancelledAt: json['cancelledAt'] != null
+          ? DateTime.parse(json['cancelledAt'] as String)
+          : null,
+      rescheduleHistory:
+          (json['rescheduleHistory'] as List<dynamic>?)
+              ?.map((e) => RescheduleRecord.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(
         json['updatedAt'] as String? ?? json['createdAt'] as String,

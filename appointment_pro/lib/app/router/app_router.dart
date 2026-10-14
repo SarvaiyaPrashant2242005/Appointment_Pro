@@ -18,6 +18,7 @@ import '../../features/bookings/presentation/screens/bookings_screen.dart';
 import '../../features/bookings/presentation/screens/booking_details_screen.dart';
 import '../../features/bookings/presentation/screens/share_booking_screen.dart';
 import '../../features/bookings/presentation/screens/public_booking_screen.dart';
+import '../../features/bookings/presentation/screens/public_booking_manage_screen.dart';
 import '../../navigations/main_navigation.dart';
 
 class AppRouter {
@@ -48,6 +49,7 @@ class AppRouter {
   static const bookingDetails = '/bookings/:id';
   static const shareBooking = '/share-booking';
   static const publicBooking = '/book/:businessSlug';
+  static const publicBookingManage = '/book/:businessSlug/manage';
 
   static Page<dynamic> _buildSmoothPage({
     required GoRouterState state,
@@ -182,6 +184,20 @@ class AppRouter {
         path: shareBooking,
         pageBuilder: (context, state) =>
             _buildSmoothPage(state: state, child: const ShareBookingScreen()),
+      ),
+      GoRoute(
+        path: publicBookingManage,
+        pageBuilder: (context, state) {
+          final slug = state.pathParameters['businessSlug'] ?? '';
+          final prefilledId = state.uri.queryParameters['bookingId'];
+          return _buildSmoothPage(
+            state: state,
+            child: PublicBookingManageScreen(
+              businessSlug: slug,
+              prefilledBookingId: prefilledId,
+            ),
+          );
+        },
       ),
       GoRoute(
         path: publicBooking,

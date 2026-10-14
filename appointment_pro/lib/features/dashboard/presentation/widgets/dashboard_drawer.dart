@@ -91,21 +91,12 @@ class DashboardDrawer extends ConsumerWidget {
 
                   _section('MANAGEMENT'),
 
-                  _tile(
-                    context,
-                    icon: Icons.calendar_today_rounded,
-                    title: 'Bookings & Appointments',
-                    badge: bookingsCount,
-                    onTap: () => _navigate(context, AppRouter.bookings),
-                  ),
-
-                  _tile(
-                    context,
-                    icon: Icons.qr_code_2_rounded,
-                    title: 'Share Booking Page & QR',
-                    onTap: () => _navigate(context, AppRouter.shareBooking),
-                  ),
-
+                  // _tile(
+                  //   context,
+                  //   icon: Icons.qr_code_2_rounded,
+                  //   title: 'Share Booking Page & QR',
+                  //   onTap: () => _navigate(context, AppRouter.shareBooking),
+                  // ),
                   _tile(
                     context,
                     icon: Icons.design_services_outlined,
@@ -121,7 +112,13 @@ class DashboardDrawer extends ConsumerWidget {
                     badge: staffCount,
                     onTap: () => _navigate(context, AppRouter.staff),
                   ),
-
+                  _tile(
+                    context,
+                    icon: Icons.calendar_today_rounded,
+                    title: 'Bookings & Appointments',
+                    badge: bookingsCount,
+                    onTap: () => _navigate(context, AppRouter.bookings),
+                  ),
                   _tile(
                     context,
                     icon: Icons.access_time_rounded,

@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/local_storage_service.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
+import '../../../services/presentation/providers/service_provider.dart';
+import '../../../staff/presentation/providers/staff_provider.dart';
 import '../../data/datasources/booking_local_datasource.dart';
 import '../../data/models/booking_model.dart';
 import '../../data/repositories/booking_repository.dart';
@@ -36,7 +38,37 @@ class BookingsController extends AsyncNotifier<List<BookingModel>> {
       return [];
     }
 
-    return _repository.getBookings(businessId);
+    final bookings = await _repository.getBookings(businessId);
+
+    try {
+      final serviceRepo = ref.read(serviceRepositoryProvider);
+      final staffRepo = ref.read(staffRepositoryProvider);
+      final services = await serviceRepo.getServices(businessId);
+      final staffList = await staffRepo.getStaff(businessId);
+
+      final serviceMap = {for (final s in services) s.id: s.name};
+      final staffMap = {for (final st in staffList) st.id: st.name};
+
+      return bookings.map((b) {
+        final resolvedService =
+            (b.serviceName != null && b.serviceName!.isNotEmpty)
+                ? b.serviceName
+                : serviceMap[b.serviceId];
+        final resolvedStaff = (b.staffName != null && b.staffName!.isNotEmpty)
+            ? b.staffName
+            : (b.staffId != null ? staffMap[b.staffId] : null);
+
+        if (resolvedService != b.serviceName || resolvedStaff != b.staffName) {
+          return b.copyWith(
+            serviceName: resolvedService,
+            staffName: resolvedStaff,
+          );
+        }
+        return b;
+      }).toList();
+    } catch (_) {
+      return bookings;
+    }
   }
 
   /// Create a new booking (scoped to active business or provided booking's business)
@@ -82,6 +114,36 @@ class BookingsController extends AsyncNotifier<List<BookingModel>> {
         cancellationReason: reason,
       );
       state = AsyncData(previous.map((b) => b.id == id ? updated : b).toList());
+    } catch (_) {
+      state = AsyncData(previous);
+      rethrow;
+    }
+  }
+
+  /// Reschedule an existing booking
+  Future<BookingModel> rescheduleBooking({
+    required String bookingId,
+    required DateTime newStartAt,
+    required DateTime newEndAt,
+    String? newStaffId,
+    String? newStaffName,
+    String? reason,
+  }) async {
+    final previous = state.asData?.value ?? [];
+    try {
+      final updated = await _repository.rescheduleBooking(
+        bookingId: bookingId,
+        newStartAt: newStartAt,
+        newEndAt: newEndAt,
+        newStaffId: newStaffId,
+        newStaffName: newStaffName,
+        reason: reason,
+      );
+      final updatedList =
+          previous.map((b) => b.id == bookingId ? updated : b).toList()
+            ..sort((a, b) => a.startAt.compareTo(b.startAt));
+      state = AsyncData(updatedList);
+      return updated;
     } catch (_) {
       state = AsyncData(previous);
       rethrow;

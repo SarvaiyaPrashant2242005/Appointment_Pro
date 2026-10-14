@@ -52,7 +52,7 @@ void main() {
 
     test('validates status transitions properly', () {
       final now = DateTime(2026, 10, 15, 14, 0);
-      final pendingBooking = BookingModel(
+      final confirmedBooking = BookingModel(
         id: 'bk_201',
         businessId: 'biz_glow',
         serviceId: 'srv_1',
@@ -61,21 +61,15 @@ void main() {
         startAt: now,
         endAt: now.add(const Duration(minutes: 30)),
         price: 30.0,
-        status: BookingStatus.pending,
-      );
-
-      // Pending can confirm or cancel, cannot complete directly
-      expect(pendingBooking.canConfirm, isTrue);
-      expect(pendingBooking.canCancel, isTrue);
-      expect(pendingBooking.canComplete, isFalse);
-
-      final confirmedBooking = pendingBooking.copyWith(
         status: BookingStatus.confirmed,
       );
+
+      // Confirmed can complete, mark no-show, reschedule, or cancel
       expect(confirmedBooking.canConfirm, isFalse);
       expect(confirmedBooking.canComplete, isTrue);
       expect(confirmedBooking.canMarkNoShow, isTrue);
       expect(confirmedBooking.canCancel, isTrue);
+      expect(confirmedBooking.canReschedule, isTrue);
 
       final completedBooking = confirmedBooking.copyWith(
         status: BookingStatus.completed,
@@ -85,7 +79,7 @@ void main() {
       expect(completedBooking.canComplete, isFalse);
       expect(completedBooking.isCompleted, isTrue);
 
-      final cancelledBooking = pendingBooking.copyWith(
+      final cancelledBooking = confirmedBooking.copyWith(
         status: BookingStatus.cancelled,
       );
       expect(cancelledBooking.canConfirm, isFalse);
@@ -434,19 +428,12 @@ void main() {
         startAt: DateTime(2026, 10, 25, 10, 0),
         endAt: DateTime(2026, 10, 25, 10, 30),
         price: 50.0,
-        status: BookingStatus.pending,
+        status: BookingStatus.confirmed,
       );
 
       await repository.createBooking(booking);
 
-      // 1. Confirm pending booking -> success
-      final confirmed = await repository.updateBookingStatus(
-        'bk_status',
-        BookingStatus.confirmed,
-      );
-      expect(confirmed.status, BookingStatus.confirmed);
-
-      // 2. Complete confirmed booking -> success
+      // 1. Complete confirmed booking -> success
       final completed = await repository.updateBookingStatus(
         'bk_status',
         BookingStatus.completed,
@@ -462,5 +449,244 @@ void main() {
         throwsException,
       );
     });
+
+    test('cancels booking with optional reason and timestamp', () async {
+      final booking = BookingModel(
+        id: 'bk_cancel_test',
+        businessId: 'biz_cancel',
+        serviceId: 'srv_c',
+        customerName: 'Cancel User',
+        customerPhone: '5551234',
+        startAt: DateTime(2026, 10, 26, 11, 0),
+        endAt: DateTime(2026, 10, 26, 11, 30),
+        price: 55.0,
+        status: BookingStatus.confirmed,
+      );
+
+      await repository.createBooking(booking);
+
+      final cancelled = await repository.updateBookingStatus(
+        'bk_cancel_test',
+        BookingStatus.cancelled,
+        cancellationReason: 'Doctor emergency',
+      );
+
+      expect(cancelled.status, BookingStatus.cancelled);
+      expect(cancelled.cancellationReason, 'Doctor emergency');
+      expect(cancelled.cancelledAt, isNotNull);
+      expect(cancelled.isCancelled, isTrue);
+
+      // Attempting to cancel an already-cancelled booking throws
+      expect(
+        () => repository.updateBookingStatus(
+          'bk_cancel_test',
+          BookingStatus.cancelled,
+        ),
+        throwsException,
+      );
+    });
+
+    test(
+      'reschedules booking preserving id, updating times and appending history',
+      () async {
+        final booking = BookingModel(
+          id: 'bk_reschedule_1',
+          businessId: 'biz_reschedule',
+          serviceId: 'srv_r',
+          staffId: 'stf_original',
+          customerName: 'Reschedule User',
+          customerPhone: '77788899',
+          startAt: DateTime(2026, 11, 1, 10, 0),
+          endAt: DateTime(2026, 11, 1, 10, 45),
+          price: 65.0,
+          status: BookingStatus.confirmed,
+        );
+
+        await repository.createBooking(booking);
+
+        final newStart = DateTime(2026, 11, 2, 14, 0);
+        final newEnd = DateTime(2026, 11, 2, 14, 45);
+
+        final rescheduled = await repository.rescheduleBooking(
+          bookingId: 'bk_reschedule_1',
+          newStartAt: newStart,
+          newEndAt: newEnd,
+          newStaffId: 'stf_new',
+          newStaffName: 'New Specialist',
+          reason: 'Customer requested afternoon slot',
+        );
+
+        // Same ID preserved!
+        expect(rescheduled.id, 'bk_reschedule_1');
+        expect(rescheduled.startAt, newStart);
+        expect(rescheduled.endAt, newEnd);
+        expect(rescheduled.staffId, 'stf_new');
+        expect(rescheduled.staffName, 'New Specialist');
+        expect(rescheduled.customerName, 'Reschedule User');
+        expect(rescheduled.rescheduleHistory.length, 1);
+
+        final record = rescheduled.rescheduleHistory.first;
+        expect(record.previousStartAt, DateTime(2026, 11, 1, 10, 0));
+        expect(record.newStartAt, newStart);
+        expect(record.reason, 'Customer requested afternoon slot');
+
+        // Check persistence after re-instantiating repo
+        final reloadedRepo = BookingRepository(BookingLocalDataSource(storage));
+        final reloadedBooking = await reloadedRepo.getBookingById(
+          'bk_reschedule_1',
+        );
+        expect(reloadedBooking, isNotNull);
+        expect(reloadedBooking!.startAt, newStart);
+        expect(reloadedBooking.rescheduleHistory.length, 1);
+      },
+    );
+
+    test('cancelled bookings release their original time slot', () {
+      final service = ServiceModel(
+        id: 'srv_s',
+        businessId: 'biz_slots',
+        name: 'Service',
+        price: 50.0,
+        durationMinutes: 30,
+        bufferMinutes: 0,
+      );
+
+      final staff = StaffModel(
+        id: 'stf_a',
+        businessId: 'biz_slots',
+        name: 'Alice',
+        assignedServiceIds: ['srv_s'],
+      );
+
+      final sched = <int, DaySchedule>{};
+      for (int i = 1; i <= 7; i++) {
+        sched[i] = const DaySchedule(
+          dayOfWeek: 1,
+          isOpen: true,
+          openTime: '09:00',
+          closeTime: '11:00',
+        );
+      }
+      final avail = BusinessAvailability(
+        businessId: 'biz_slots',
+        weeklySchedule: sched,
+      );
+
+      final targetDate = DateTime(2027, 8, 10);
+      final activeBooking = BookingModel(
+        id: 'bk_active_slot',
+        businessId: 'biz_slots',
+        serviceId: 'srv_s',
+        staffId: 'stf_a',
+        customerName: 'Client',
+        customerPhone: '111',
+        startAt: DateTime(2027, 8, 10, 9, 0),
+        endAt: DateTime(2027, 8, 10, 9, 30),
+        price: 50.0,
+        status: BookingStatus.confirmed,
+      );
+
+      // Slot 09:00 is occupied when booking is confirmed
+      final occupiedSlots =
+          BookingAvailabilityCalculator.calculateAvailableSlots(
+            date: targetDate,
+            service: service,
+            availability: avail,
+            timeOffList: [],
+            eligibleStaff: [staff],
+            existingBookings: [activeBooking],
+            now: DateTime(2027, 8, 1, 8, 0),
+          );
+      expect(occupiedSlots.any((s) => s.startTimeString == '09:00'), isFalse);
+
+      // Once cancelled, slot 09:00 is freed!
+      final cancelledBooking = activeBooking.copyWith(
+        status: BookingStatus.cancelled,
+      );
+      final releasedSlots =
+          BookingAvailabilityCalculator.calculateAvailableSlots(
+            date: targetDate,
+            service: service,
+            availability: avail,
+            timeOffList: [],
+            eligibleStaff: [staff],
+            existingBookings: [cancelledBooking],
+            now: DateTime(2027, 8, 1, 8, 0),
+          );
+      expect(releasedSlots.any((s) => s.startTimeString == '09:00'), isTrue);
+    });
+
+    test(
+      'rescheduling ignores current booking ID so it does not block itself',
+      () {
+        final service = ServiceModel(
+          id: 'srv_self',
+          businessId: 'biz_self',
+          name: 'Service',
+          price: 50.0,
+          durationMinutes: 30,
+          bufferMinutes: 0,
+        );
+
+        final staff = StaffModel(
+          id: 'stf_self',
+          businessId: 'biz_self',
+          name: 'Self Staff',
+          assignedServiceIds: ['srv_self'],
+        );
+
+        final sched = <int, DaySchedule>{};
+        for (int i = 1; i <= 7; i++) {
+          sched[i] = const DaySchedule(
+            dayOfWeek: 1,
+            isOpen: true,
+            openTime: '09:00',
+            closeTime: '11:00',
+          );
+        }
+        final avail = BusinessAvailability(
+          businessId: 'biz_self',
+          weeklySchedule: sched,
+        );
+
+        final currentBooking = BookingModel(
+          id: 'bk_self_conflict',
+          businessId: 'biz_self',
+          serviceId: 'srv_self',
+          staffId: 'stf_self',
+          customerName: 'Client Self',
+          customerPhone: '111',
+          startAt: DateTime(2027, 9, 10, 9, 0),
+          endAt: DateTime(2027, 9, 10, 9, 30),
+          price: 50.0,
+          status: BookingStatus.confirmed,
+        );
+
+        // If we ignore bk_self_conflict, 09:00 is available for re-selection (e.g. changing specialist)
+        final availableSlots =
+            BookingAvailabilityCalculator.calculateAvailableSlots(
+              date: DateTime(2027, 9, 10),
+              service: service,
+              availability: avail,
+              timeOffList: [],
+              eligibleStaff: [staff],
+              existingBookings: [currentBooking],
+              ignoreBookingId: 'bk_self_conflict',
+              now: DateTime(2027, 9, 1, 8, 0),
+            );
+
+        expect(availableSlots.any((s) => s.startTimeString == '09:00'), isTrue);
+
+        final isAvailable = BookingAvailabilityCalculator.isSlotStillAvailable(
+          startAt: DateTime(2027, 9, 10, 9, 0),
+          endAt: DateTime(2027, 9, 10, 9, 30),
+          bufferMinutes: 0,
+          staffId: 'stf_self',
+          existingBookings: [currentBooking],
+          ignoreBookingId: 'bk_self_conflict',
+        );
+        expect(isAvailable, isTrue);
+      },
+    );
   });
 }
