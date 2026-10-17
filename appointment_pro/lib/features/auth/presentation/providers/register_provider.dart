@@ -1,9 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/api_exception.dart';
 import '../../../../core/services/local_storage_service.dart';
 import '../../data/models/register_model.dart';
+import '../../data/repositories/auth_repository.dart';
 
 export '../../../../core/services/local_storage_service.dart'
     show localStorageServiceProvider;
@@ -11,8 +11,17 @@ export '../../../../core/services/local_storage_service.dart'
 class RegisterState {
   final bool isLoading;
   final String? errorMessage;
+  final String? successMessage;
+  final bool requiresVerification;
+  final String? registeredEmail;
 
-  const RegisterState({this.isLoading = false, this.errorMessage});
+  const RegisterState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.successMessage,
+    this.requiresVerification = false,
+    this.registeredEmail,
+  });
 }
 
 class RegisterController extends Notifier<RegisterState> {
@@ -23,20 +32,21 @@ class RegisterController extends Notifier<RegisterState> {
     state = const RegisterState(isLoading: true);
 
     try {
-      final storage = ref.read(localStorageServiceProvider);
+      final authRepo = ref.read(authRepositoryProvider);
+      final response = await authRepo.register(model);
 
-      final isAlreadyRegistered = await storage.isEmailRegistered(model.email);
-      if (isAlreadyRegistered) {
-        throw Exception('An account with this email is already registered.');
-      }
-
-      await storage.saveUserProfile(jsonEncode(model.toJson()));
-
-      state = const RegisterState();
+      state = RegisterState(
+        requiresVerification: response.requiresVerification,
+        registeredEmail: model.email,
+        successMessage: response.messageToShow,
+      );
     } catch (e) {
-      final message = e is Exception
-          ? e.toString().replaceFirst('Exception: ', '')
-          : 'Unable to save your details. Please try again.';
+      final message = e is ApiException
+          ? e.messageToShow
+          : e is Exception
+              ? e.toString().replaceFirst('Exception: ', '')
+              : 'Unable to save your details. Please try again.';
+
       state = RegisterState(errorMessage: message);
       rethrow;
     }

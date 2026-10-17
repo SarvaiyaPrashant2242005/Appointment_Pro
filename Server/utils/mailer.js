@@ -28,13 +28,23 @@ const sendMail = async ({ to, subject, html, text }) => {
         return { messageId: 'simulated-local-id' };
     }
 
-    return transporter.sendMail({
-        from: env.smtp.from,
-        to,
-        subject,
-        text,
-        html,
-    });
+    try {
+        return await transporter.sendMail({
+            from: env.smtp.from,
+            to,
+            subject,
+            text,
+            html,
+        });
+    } catch (error) {
+        console.error(`⚠️ SMTP delivery failed (${error.message}). Simulating email locally:`);
+        console.log('\n================== ✉️ LOCAL EMAIL FALLBACK ✉️ ==================');
+        console.log(`To: ${to}`);
+        console.log(`Subject: ${subject}`);
+        console.log(`Body text:\n${text}`);
+        console.log('=================================================================\n');
+        return { messageId: 'fallback-local-id' };
+    }
 };
 
 /**

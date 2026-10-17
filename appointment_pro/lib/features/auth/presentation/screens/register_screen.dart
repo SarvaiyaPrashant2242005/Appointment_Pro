@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
+import '../../../../core/errors/api_exception.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../data/models/register_model.dart';
 import '../providers/register_provider.dart';
@@ -51,15 +52,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       if (!mounted) return;
 
-      AppToast.success(context, 'Account details saved successfully!');
+      final registerState = ref.read(registerProvider);
+      final toastMessage = registerState.successMessage ??
+          'Account created! A 6-digit verification code has been sent to your email.';
+      AppToast.info(context, toastMessage);
 
-      context.go(AppRouter.login);
+      // Navigate to OTP verification screen with email prefilled
+      context.go(
+        '${AppRouter.verifyOtp}?email=${Uri.encodeComponent(model.email)}',
+      );
     } catch (e) {
       if (!mounted) return;
 
-      final message = e is Exception
-          ? e.toString().replaceFirst('Exception: ', '')
-          : 'Unable to save your details. Please try again.';
+      final message = e is ApiException
+          ? e.messageToShow
+          : e is Exception
+              ? e.toString().replaceFirst('Exception: ', '')
+              : 'Unable to save your details. Please try again.';
 
       AppToast.error(context, message);
     }

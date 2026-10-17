@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/verify_otp_screen.dart';
 import '../../features/availability/presentation/screens/availability_screen.dart';
 import '../../features/bussiness_setup/presentation/screens/business_list_screen.dart';
 import '../../features/bussiness_setup/presentation/screens/business_setup_screen.dart';
@@ -29,6 +30,7 @@ class AppRouter {
   static const splash = '/';
   static const login = '/login';
   static const register = '/register';
+  static const verifyOtp = '/verify-otp';
   static const businessSetup = '/business-setup';
   static const notifications = '/notifications';
   static const reports = '/reports';
@@ -105,6 +107,17 @@ class AppRouter {
         path: register,
         pageBuilder: (context, state) =>
             _buildSmoothPage(state: state, child: const RegisterScreen()),
+      ),
+      GoRoute(
+        path: verifyOtp,
+        pageBuilder: (context, state) {
+          final email = state.uri.queryParameters['email'] ??
+              (state.extra is String ? state.extra as String : '');
+          return _buildSmoothPage(
+            state: state,
+            child: VerifyOtpScreen(email: email),
+          );
+        },
       ),
       GoRoute(
         path: businessSetup,

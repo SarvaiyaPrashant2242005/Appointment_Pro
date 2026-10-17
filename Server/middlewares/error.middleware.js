@@ -57,6 +57,8 @@ const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused
         statusCode,
         message,
         messageToShow,
+        ...(err.requiresVerification !== undefined ? { requiresVerification: err.requiresVerification } : {}),
+        ...(err.email ? { email: err.email } : {}),
     });
 };
 

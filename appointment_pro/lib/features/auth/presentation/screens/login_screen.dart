@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
+import '../../../../core/errors/api_exception.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
@@ -36,7 +37,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await ref
+      final successMessage = await ref
           .read(loginProvider.notifier)
           .login(
             email: _emailController.text.trim(),
@@ -45,7 +46,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (!mounted) return;
 
-      AppToast.success(context, 'Signed in successfully!');
+      AppToast.success(context, successMessage);
 
       final businesses = await ref
           .read(businessRepositoryProvider)
@@ -60,9 +61,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      final message = e is Exception
-          ? e.toString().replaceFirst('Exception: ', '')
-          : 'Unable to sign in. Please try again.';
+      final loginState = ref.read(loginProvider);
+      final isVerificationRequired = loginState.requiresVerification ||
+          (e is ApiException && e.requiresVerification) ||
+          (e is ApiException &&
+              (e.messageToShow.toLowerCase().contains('not verified') ||
+                  e.message.toLowerCase().contains('not verified')));
+
+      if (isVerificationRequired) {
+        final emailToVerify = loginState.unverifiedEmail ??
+            (e is ApiException ? e.email : null) ??
+            _emailController.text.trim();
+        final verificationNotice = (e is ApiException ? e.messageToShow : null) ??
+            loginState.errorMessage ??
+            'Your email address is not verified yet. We have sent a new verification code to your email.';
+
+        AppToast.info(context, verificationNotice);
+        context.push(
+          '${AppRouter.verifyOtp}?email=${Uri.encodeComponent(emailToVerify)}',
+          extra: emailToVerify,
+        );
+        return;
+      }
+
+      final message = e is ApiException
+          ? e.messageToShow
+          : e is Exception
+              ? e.toString().replaceFirst('Exception: ', '')
+              : 'Unable to sign in. Please try again.';
 
       AppToast.error(context, message);
     }

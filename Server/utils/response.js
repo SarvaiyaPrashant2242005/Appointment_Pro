@@ -17,13 +17,14 @@ const sendSuccess = (res, { statusCode = 200, message = 'Success', messageToShow
     return res.status(statusCode).json(payload);
 };
 
-const sendError = (res, { statusCode = 500, message = 'An error occurred', messageToShow = null, errors = null } = {}) => {
+const sendError = (res, { statusCode = 500, message = 'An error occurred', messageToShow = null, errors = null, ...rest } = {}) => {
     const finalMessage = messageToShow || message;
 
     const payload = {
         success: false,
         message: message,
         messageToShow: finalMessage,
+        ...rest,
     };
 
     if (errors !== null) payload.errors = errors;

@@ -16,6 +16,8 @@ class LocalStorageService {
   static const String _isLoggedInKey = 'appointmentpro_is_logged_in';
   static const String _currentUserEmailKey =
       'appointmentpro_current_user_email';
+  static const String _accessTokenKey = 'appointmentpro_access_token';
+  static const String _refreshTokenKey = 'appointmentpro_refresh_token';
 
   Future<SharedPreferences> get _instance async {
     return _preferences ??= await SharedPreferences.getInstance();
@@ -43,6 +45,48 @@ class LocalStorageService {
 
   Future<bool> clear() async {
     return (await _instance).clear();
+  }
+
+  Future<void> saveAuthTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    final prefs = await _instance;
+    await prefs.setString(_accessTokenKey, accessToken);
+    await prefs.setString(_refreshTokenKey, refreshToken);
+  }
+
+  Future<String?> getAccessToken() async {
+    return getString(_accessTokenKey);
+  }
+
+  Future<String?> getRefreshToken() async {
+    return getString(_refreshTokenKey);
+  }
+
+  Future<void> saveAuthSession({
+    required String accessToken,
+    required String refreshToken,
+    required Map<String, dynamic> user,
+  }) async {
+    final prefs = await _instance;
+    await prefs.setString(_accessTokenKey, accessToken);
+    await prefs.setString(_refreshTokenKey, refreshToken);
+    await prefs.setString(_userProfileKey, jsonEncode(user));
+    await prefs.setBool(_isLoggedInKey, true);
+    await prefs.setBool(_isRegisteredKey, true);
+    final email = user['email'] as String?;
+    if (email != null && email.isNotEmpty) {
+      await prefs.setString(_currentUserEmailKey, email);
+    }
+  }
+
+  Future<void> clearAuth() async {
+    final prefs = await _instance;
+    await prefs.remove(_accessTokenKey);
+    await prefs.remove(_refreshTokenKey);
+    await prefs.remove(_userProfileKey);
+    await prefs.setBool(_isLoggedInKey, false);
   }
 
   Future<void> saveUserProfile(String json) async {

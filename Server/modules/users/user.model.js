@@ -76,7 +76,15 @@ const User = sequelize.define('User', {
 User.prototype.toSafeJSON = function () {
     const values = { ...this.get() };
     delete values.password_hash;
-    return values;
+    return {
+        ...values,
+        fullName: values.full_name,
+        avatarUrl: values.avatar_url,
+        isActive: values.is_active,
+        isEmailVerified: values.is_email_verified,
+        createdAt: values.created_at,
+        updatedAt: values.updated_at,
+    };
 };
 
 module.exports = User;

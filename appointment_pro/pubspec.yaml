@@ -25,6 +25,7 @@ dependencies:
   firebase_messaging: ^16.7.0
   pdf: ^3.13.1
   printing: ^5.15.1
+  dio: ^5.11.1
 
 dev_dependencies:
   flutter_test:

@@ -244,6 +244,7 @@ class AuthService {
             const error = new Error('Your email address is not verified yet. We have sent a new verification code to your email.');
             error.statusCode = 403;
             error.requiresVerification = true;
+            error.email = normalizedEmail;
             throw error;
         }
 
