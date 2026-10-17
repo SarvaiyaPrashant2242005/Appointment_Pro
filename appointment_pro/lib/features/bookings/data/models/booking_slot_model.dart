@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 enum SlotPeriod {
   morning,
   afternoon,
@@ -18,8 +20,8 @@ enum SlotPeriod {
 class BookingSlot {
   final DateTime startAt;
   final DateTime endAt;
-  final String startTimeString; // "HH:mm"
-  final String endTimeString; // "HH:mm"
+  final String startTimeString; // "HH:mm" (internal 24h format for calculator)
+  final String endTimeString; // "HH:mm" (internal 24h format for calculator)
   final List<String> availableStaffIds;
   final bool isAvailable;
   final String? unavailableReason;
@@ -37,8 +39,25 @@ class BookingSlot {
   DateTime get start => startAt;
   DateTime get end => endAt;
 
-  String get timeRangeLabel => '$startTimeString - $endTimeString';
+  /// Helper to format DateTime to 12-hour format "h:mm a" (e.g. "9:00 AM", "2:30 PM")
+  static String format12Hour(DateTime dt) {
+    return DateFormat('h:mm a').format(dt);
+  }
+
+  /// 12-hour formatted start time (e.g. "9:00 AM", "2:30 PM")
+  String get startTime12 => format12Hour(startAt);
+
+  /// 12-hour formatted end time (e.g. "9:45 AM", "3:15 PM")
+  String get endTime12 => format12Hour(endAt);
+
+  /// 12-hour formatted time range label (e.g. "9:00 AM - 9:45 AM", "2:00 PM - 2:45 PM")
+  String get timeRangeLabel => '$startTime12 - $endTime12';
+
+  /// Primary display format in 12-hour format for slot chips and screens
   String get formattedTime => timeRangeLabel;
+
+  /// Shorter 12-hour start time display
+  String get formattedStartTime => startTime12;
 
   SlotPeriod get period {
     final hour = startAt.hour;

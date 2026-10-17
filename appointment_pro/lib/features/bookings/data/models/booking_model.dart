@@ -105,6 +105,8 @@ class BookingModel {
   final String businessId;
   final String serviceId;
   final String? staffId; // null when unassigned
+  final String? customerId;
+  final String? bookingReference;
   final String customerName;
   final String customerCountryCode;
   final String customerPhone;
@@ -129,6 +131,8 @@ class BookingModel {
     required this.businessId,
     required this.serviceId,
     this.staffId,
+    this.customerId,
+    this.bookingReference,
     required this.customerName,
     this.customerCountryCode = '+91',
     required this.customerPhone,
@@ -150,6 +154,22 @@ class BookingModel {
 
   int get durationMinutes => endAt.difference(startAt).inMinutes;
 
+  /// Human-friendly display ID that is clean, readable, and never an ugly raw UUID.
+  String get displayId {
+    if (bookingReference != null && bookingReference!.trim().isNotEmpty) {
+      return bookingReference!.trim();
+    }
+    if (id.startsWith('AP-') || id.startsWith('BK-')) {
+      return id;
+    }
+    // If id is a raw UUID (contains hyphens and length > 8), format it cleanly
+    if (id.contains('-') && id.length >= 8) {
+      final clean = id.replaceAll('-', '').toUpperCase();
+      return 'AP-${clean.substring(0, 6)}';
+    }
+    return id.isEmpty ? 'AP-000000' : id;
+  }
+
   String get fullPhoneNumber {
     final code = customerCountryCode.trim();
     final phone = customerPhone.trim();
@@ -170,6 +190,8 @@ class BookingModel {
     String? businessId,
     String? serviceId,
     String? staffId,
+    String? customerId,
+    String? bookingReference,
     String? customerName,
     String? customerCountryCode,
     String? customerPhone,
@@ -192,6 +214,8 @@ class BookingModel {
       businessId: businessId ?? this.businessId,
       serviceId: serviceId ?? this.serviceId,
       staffId: staffId ?? this.staffId,
+      customerId: customerId ?? this.customerId,
+      bookingReference: bookingReference ?? this.bookingReference,
       customerName: customerName ?? this.customerName,
       customerCountryCode: customerCountryCode ?? this.customerCountryCode,
       customerPhone: customerPhone ?? this.customerPhone,
@@ -216,6 +240,8 @@ class BookingModel {
     'businessId': businessId,
     'serviceId': serviceId,
     'staffId': staffId,
+    'customerId': customerId,
+    'bookingReference': bookingReference ?? displayId,
     'customerName': customerName,
     'customerCountryCode': customerCountryCode,
     'customerPhone': customerPhone,
@@ -235,35 +261,72 @@ class BookingModel {
   };
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic val) {
+      if (val == null) return DateTime.now();
+      return DateTime.tryParse(val.toString()) ?? DateTime.now();
+    }
+
+    final rawPrice = json['price'];
+    final parsedPrice = rawPrice is num
+        ? rawPrice.toDouble()
+        : double.tryParse(rawPrice?.toString() ?? '0') ?? 0.0;
+
+    final rawReschedule = json['rescheduleHistory'];
+    List<RescheduleRecord> history = [];
+    if (rawReschedule is List) {
+      history = rawReschedule
+          .map((e) => RescheduleRecord.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+
+    final rawId = json['id']?.toString() ?? '';
+    final rawRef = (json['bookingReference'] ??
+            json['booking_reference'] ??
+            json['bookingRef'])
+        ?.toString();
+
+    // Prefer human-friendly booking reference if available, fallback to id
+    final cleanId = (rawRef != null && rawRef.isNotEmpty) ? rawRef : rawId;
+
     return BookingModel(
-      id: json['id'] as String,
-      businessId: json['businessId'] as String,
-      serviceId: json['serviceId'] as String,
-      staffId: json['staffId'] as String?,
-      customerName: json['customerName'] as String,
-      customerCountryCode: json['customerCountryCode'] as String? ?? '+91',
-      customerPhone: json['customerPhone'] as String,
-      customerEmail: json['customerEmail'] as String?,
-      customerNotes: json['customerNotes'] as String?,
-      startAt: DateTime.parse(json['startAt'] as String),
-      endAt: DateTime.parse(json['endAt'] as String),
-      price: (json['price'] as num).toDouble(),
-      status: BookingStatus.fromString(json['status'] as String?),
-      cancellationReason: json['cancellationReason'] as String?,
-      cancelledAt: json['cancelledAt'] != null
-          ? DateTime.parse(json['cancelledAt'] as String)
+      id: cleanId,
+      businessId:
+          (json['businessId'] ?? json['business_id'])?.toString() ?? '',
+      serviceId:
+          (json['serviceId'] ?? json['service_id'])?.toString() ?? '',
+      staffId: (json['staffId'] ?? json['staff_id'])?.toString(),
+      customerId: (json['customerId'] ?? json['customer_id'])?.toString(),
+      bookingReference: rawRef ?? (cleanId.startsWith('AP-') ? cleanId : null),
+      customerName:
+          (json['customerName'] ?? json['customer_name'])?.toString() ?? '',
+      customerCountryCode: (json['customerCountryCode'] ??
+              json['customer_country_code'])
+          ?.toString() ??
+          '+91',
+      customerPhone:
+          (json['customerPhone'] ?? json['customer_phone'])?.toString() ?? '',
+      customerEmail:
+          (json['customerEmail'] ?? json['customer_email'])?.toString(),
+      customerNotes:
+          (json['customerNotes'] ?? json['customer_notes'])?.toString(),
+      startAt: parseDate(json['startAt'] ?? json['start_at']),
+      endAt: parseDate(json['endAt'] ?? json['end_at']),
+      price: parsedPrice,
+      status: BookingStatus.fromString(json['status']?.toString()),
+      cancellationReason: (json['cancellationReason'] ??
+              json['cancellation_reason'])
+          ?.toString(),
+      cancelledAt: (json['cancelledAt'] ?? json['cancelled_at']) != null
+          ? parseDate(json['cancelledAt'] ?? json['cancelled_at'])
           : null,
-      rescheduleHistory:
-          (json['rescheduleHistory'] as List<dynamic>?)
-              ?.map((e) => RescheduleRecord.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(
-        json['updatedAt'] as String? ?? json['createdAt'] as String,
+      rescheduleHistory: history,
+      createdAt: parseDate(json['createdAt'] ?? json['created_at']),
+      updatedAt: parseDate(
+        json['updatedAt'] ?? json['updated_at'] ?? json['createdAt'] ?? json['created_at'],
       ),
-      serviceName: json['serviceName'] as String?,
-      staffName: json['staffName'] as String?,
+      serviceName:
+          (json['serviceName'] ?? json['service_name'])?.toString(),
+      staffName: (json['staffName'] ?? json['staff_name'])?.toString(),
     );
   }
 }

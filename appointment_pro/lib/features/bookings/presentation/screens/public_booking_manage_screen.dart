@@ -141,7 +141,11 @@ class _PublicBookingManageScreenState
 
     try {
       final repo = ref.read(bookingRepositoryProvider);
-      final booking = await repo.getBookingById(bookingId);
+      BookingModel? booking;
+      try {
+        booking = await repo.getBookingByReference(bookingId);
+      } catch (_) {}
+      booking ??= await repo.getBookingById(bookingId);
 
       // Verify: booking must exist, belong to this business, and phone must match
       if (booking == null ||
@@ -288,9 +292,8 @@ class _PublicBookingManageScreenState
     setState(() => _isSearching = true);
     try {
       final repo = ref.read(bookingRepositoryProvider);
-      final updated = await repo.updateBookingStatus(
+      final updated = await repo.publicCancelBooking(
         booking.id,
-        BookingStatus.cancelled,
         cancellationReason: reason,
       );
 
@@ -526,7 +529,7 @@ class _PublicBookingManageScreenState
               children: [
                 AppTextField(
                   label: 'Booking ID',
-                  hint: 'e.g., bk_1728938492000',
+                  hint: 'e.g., AP-849201',
                   controller: _bookingIdController,
                   prefixIcon: const Icon(Icons.tag_rounded),
                   validator: (v) {
@@ -655,44 +658,52 @@ class _PublicBookingManageScreenState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Booking Reference ID',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.textSecondary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Booking Reference ID',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.textSecondary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      SelectableText(
-                        booking.id,
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: SelectableText(
+                            booking.displayId,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: AppColors.accent,
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      InkWell(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: booking.id));
-                          AppToast.info(context, 'ID copied to clipboard');
-                        },
-                        child: const Icon(
-                          Icons.copy_rounded,
-                          size: 16,
-                          color: AppColors.accent,
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () {
+                            Clipboard.setData(
+                              ClipboardData(text: booking.displayId),
+                            );
+                            AppToast.info(context, 'Booking ID copied to clipboard');
+                          },
+                          child: const Icon(
+                            Icons.copy_rounded,
+                            size: 16,
+                            color: AppColors.accent,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 12),
               BookingStatusChip(status: booking.status),
             ],
           ),
@@ -1206,7 +1217,7 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
       final consumerRef = ProviderScope.containerOf(context);
       final repo = consumerRef.read(bookingRepositoryProvider);
 
-      final updated = await repo.rescheduleBooking(
+      final updated = await repo.publicRescheduleBooking(
         bookingId: widget.booking.id,
         newStartAt: slot.startAt,
         newEndAt: slot.endAt,

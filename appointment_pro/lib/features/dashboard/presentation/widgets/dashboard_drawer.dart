@@ -9,6 +9,7 @@ import '../../../bussiness_setup/presentation/widgets/business_form_sheet.dart';
 import '../../../services/presentation/providers/service_provider.dart';
 import '../../../staff/presentation/providers/staff_provider.dart';
 import '../../../bookings/presentation/providers/booking_provider.dart';
+import '../../../customers/presentation/providers/customer_provider.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 
 class DashboardDrawer extends ConsumerWidget {
@@ -23,6 +24,8 @@ class DashboardDrawer extends ConsumerWidget {
     final servicesCount = ref.watch(servicesProvider).asData?.value.length ?? 0;
     final staffCount = ref.watch(staffProvider).asData?.value.length ?? 0;
     final bookingsCount = ref.watch(todayBookingsProvider).length;
+    final customersCount =
+        ref.watch(customersProvider).asData?.value.length ?? 0;
     final unreadNotifsCount = ref.watch(unreadNotificationsCountProvider);
 
     return Drawer(
@@ -120,6 +123,13 @@ class DashboardDrawer extends ConsumerWidget {
                     title: 'Bookings & Appointments',
                     badge: bookingsCount,
                     onTap: () => _navigate(context, AppRouter.bookings),
+                  ),
+                  _tile(
+                    context,
+                    icon: Icons.people_alt_outlined,
+                    title: 'Customers & Clients',
+                    badge: customersCount,
+                    onTap: () => _navigate(context, AppRouter.customers),
                   ),
                   _tile(
                     context,

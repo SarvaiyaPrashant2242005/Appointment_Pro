@@ -677,38 +677,46 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Booking ID',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark
-                                    ? AppColors.darkTextSecondary
-                                    : AppColors.textSecondary,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Booking ID',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.textSecondary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            SelectableText(
-                              booking.id,
-                              style: const TextStyle(
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: AppColors.accent,
+                              const SizedBox(height: 4),
+                              SelectableText(
+                                booking.displayId,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: AppColors.accent,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         BookingStatusChip(status: booking.status),
                       ],
                     ),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () {
-                        Clipboard.setData(ClipboardData(text: booking.id));
+                        Clipboard.setData(
+                          ClipboardData(text: booking.displayId),
+                        );
                         AppToast.info(
                           context,
                           'Booking ID copied to clipboard',
@@ -811,7 +819,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Important: Please save your Booking ID. You will need your Booking ID and phone number to look up, reschedule, or cancel your appointment.',
+                        'Important: Please save your Booking ID (${booking.displayId}). You will need your Booking ID and phone number to look up, reschedule, or cancel your appointment.',
                         style: TextStyle(
                           fontSize: 12.5,
                           height: 1.4,
@@ -833,7 +841,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                 icon: Icons.edit_calendar_rounded,
                 onPressed: () {
                   context.push(
-                    '/book/${widget.businessSlug}/manage?bookingId=${booking.id}',
+                    '/book/${widget.businessSlug}/manage?bookingId=${booking.displayId}',
                   );
                 },
               ),

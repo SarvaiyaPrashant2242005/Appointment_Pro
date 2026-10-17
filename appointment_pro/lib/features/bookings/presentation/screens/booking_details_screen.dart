@@ -16,6 +16,8 @@ import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../../services/presentation/providers/service_provider.dart';
 import '../../../staff/presentation/providers/staff_provider.dart';
 import '../../data/models/booking_model.dart';
+import '../../../customers/data/models/customer_model.dart';
+import '../../../customers/presentation/widgets/customer_detail_sheet.dart';
 import '../providers/booking_provider.dart';
 import '../widgets/booking_reschedule_sheet.dart';
 import '../widgets/booking_status_chip.dart';
@@ -311,7 +313,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
             tooltip: 'Copy Reference ID',
             icon: const Icon(Icons.copy_rounded, size: 20),
             onPressed: () {
-              Clipboard.setData(ClipboardData(text: booking.id));
+              Clipboard.setData(ClipboardData(text: booking.displayId));
               AppToast.info(context, 'Booking ID copied to clipboard');
             },
           ),
@@ -330,28 +332,32 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Reference ID',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: isDark
-                                    ? AppColors.darkTextSecondary
-                                    : AppColors.textSecondary,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Reference ID',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.textSecondary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              booking.id,
-                              style: const TextStyle(
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                              const SizedBox(height: 2),
+                              SelectableText(
+                                booking.displayId,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppColors.accent,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 12),
                         BookingStatusChip(status: booking.status),
                       ],
                     ),
@@ -479,6 +485,44 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
                             context: context,
                           ),
                         ],
+                        const Divider(height: 20),
+                        InkWell(
+                          onTap: () {
+                            final customer = CustomerModel(
+                              id: booking.customerId ?? '',
+                              businessId: booking.businessId,
+                              name: booking.customerName,
+                              countryCode: booking.customerCountryCode,
+                              phone: booking.customerPhone,
+                              email: booking.customerEmail,
+                              notes: booking.customerNotes,
+                            );
+                            showCustomerDetailSheet(context, customer);
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.person_search_rounded,
+                                  size: 16,
+                                  color: AppColors.accent,
+                                ),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  'View Full Client Profile & History',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.accent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

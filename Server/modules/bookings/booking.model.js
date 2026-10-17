@@ -142,11 +142,16 @@ Booking.prototype.toClientJSON = function () {
         }));
     }
 
+    const cleanBookingId = raw.booking_reference || raw.id;
+
     return {
         ...raw,
         price: parseFloat(raw.price) || 0.00,
-        // CamelCase aliases for Flutter BookingModel compatibility
-        bookingReference: raw.booking_reference,
+        // Expose clean human-friendly booking reference (e.g. AP-849201) as primary ID
+        id: cleanBookingId,
+        bookingId: cleanBookingId,
+        rawId: raw.id,
+        bookingReference: cleanBookingId,
         businessId: raw.business_id,
         serviceId: raw.service_id,
         staffId: raw.staff_id,

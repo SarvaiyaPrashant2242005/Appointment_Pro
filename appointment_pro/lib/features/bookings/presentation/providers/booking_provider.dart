@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../../../../core/services/api_client.dart';
 import '../../../../core/services/local_storage_service.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../../services/presentation/providers/service_provider.dart';
@@ -16,8 +16,9 @@ final bookingLocalDataSourceProvider = Provider<BookingLocalDataSource>((ref) {
 
 /// Provider for BookingRepository
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
   final dataSource = ref.watch(bookingLocalDataSourceProvider);
-  return BookingRepository(dataSource);
+  return BookingRepository(apiClient, dataSource);
 });
 
 /// Main controller managing owner bookings for the active business

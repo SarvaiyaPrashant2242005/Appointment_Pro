@@ -87,6 +87,25 @@ class BookingService {
     }
 
     /**
+     * Helper to find a booking by either UUID or human-friendly booking_reference (e.g. AP-849201)
+     */
+    async _findBookingByIdOrRef(bookingId, options = {}) {
+        if (!bookingId) return null;
+        const trimmed = String(bookingId).trim();
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed);
+
+        if (isUUID) {
+            const byPk = await Booking.findByPk(trimmed, options);
+            if (byPk) return byPk;
+        }
+
+        return await Booking.findOne({
+            where: { booking_reference: trimmed },
+            ...options,
+        });
+    }
+
+    /**
      * Create an appointment booking (works for authenticated owner or public booking link)
      */
     async createBooking({ ownerId = null, businessSlug = null, data }) {
@@ -316,7 +335,7 @@ class BookingService {
      * Get single booking by ID
      */
     async getBookingById(ownerId, bookingId) {
-        const booking = await Booking.findByPk(bookingId, {
+        const booking = await this._findBookingByIdOrRef(bookingId, {
             include: [
                 { model: Business, as: 'business', attributes: ['id', 'owner_id', 'name', 'currency'] },
                 { model: Service, as: 'service', attributes: ['id', 'name', 'price', 'duration_minutes'] },
@@ -361,8 +380,7 @@ class BookingService {
      * Public lookup by booking reference code
      */
     async getBookingByReference(bookingReference) {
-        const booking = await Booking.findOne({
-            where: { booking_reference: bookingReference.trim() },
+        const booking = await this._findBookingByIdOrRef(bookingReference, {
             include: [
                 { model: Business, as: 'business', attributes: ['id', 'name', 'slug', 'currency', 'phone'] },
                 { model: Service, as: 'service', attributes: ['id', 'name', 'price', 'duration_minutes'] },
@@ -389,22 +407,32 @@ class BookingService {
      * Update booking status (confirmed, completed, cancelled, noShow)
      */
     async updateBookingStatus(ownerId, bookingId, { status, cancellationReason }) {
-        const booking = await Booking.findByPk(bookingId, {
+        const booking = await this._findBookingByIdOrRef(bookingId, {
             include: [{ model: Business, as: 'business', attributes: ['id', 'owner_id', 'name'] }],
         });
 
         if (!booking) {
             const error = new Error('Booking not found.');
             error.statusCode = 404;
-            error.messageToShow = 'The requested booking could not be found.';
+            error.messageToShow = 'The requested appointment could not be found.';
             throw error;
         }
 
-        if (booking.business?.owner_id !== ownerId) {
-            const error = new Error('Unauthorized.');
-            error.statusCode = 403;
-            error.messageToShow = 'You do not have permission to modify this booking.';
-            throw error;
+        if (ownerId && booking.business?.owner_id !== ownerId) {
+            const membership = await BusinessMember.findOne({
+                where: {
+                    business_id: booking.business_id,
+                    user_id: ownerId,
+                    is_active: true,
+                },
+            });
+
+            if (!membership) {
+                const error = new Error('Unauthorized.');
+                error.statusCode = 403;
+                error.messageToShow = 'You do not have permission to update this booking.';
+                throw error;
+            }
         }
 
         const updateData = { status };
@@ -432,7 +460,7 @@ class BookingService {
      * Reschedule appointment (updates start/end times and records audit history)
      */
     async rescheduleBooking(ownerId, bookingId, data) {
-        const booking = await Booking.findByPk(bookingId, {
+        const booking = await this._findBookingByIdOrRef(bookingId, {
             include: [{ model: Business, as: 'business', attributes: ['id', 'owner_id', 'name'] }],
         });
 
@@ -517,7 +545,7 @@ class BookingService {
      * Delete booking
      */
     async deleteBooking(ownerId, bookingId) {
-        const booking = await Booking.findByPk(bookingId, {
+        const booking = await this._findBookingByIdOrRef(bookingId, {
             include: [{ model: Business, as: 'business', attributes: ['id', 'owner_id', 'name'] }],
         });
 

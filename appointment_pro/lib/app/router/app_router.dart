@@ -20,6 +20,7 @@ import '../../features/bookings/presentation/screens/booking_details_screen.dart
 import '../../features/bookings/presentation/screens/share_booking_screen.dart';
 import '../../features/bookings/presentation/screens/public_booking_screen.dart';
 import '../../features/bookings/presentation/screens/public_booking_manage_screen.dart';
+import '../../features/customers/presentation/screens/customers_screen.dart';
 import '../../features/notifications/presentation/screens/notification_center_screen.dart';
 import '../../features/reports/presentation/screens/reports_analytics_screen.dart';
 import '../../navigations/main_navigation.dart';
@@ -49,6 +50,7 @@ class AppRouter {
   static const staff = '/staff';
   static const staffCreate = '/staff/create';
   static const staffEdit = '/staff/:id/edit';
+  static const customers = '/customers';
 
   // Bookings Module routes
   static const bookings = '/bookings';
@@ -179,6 +181,13 @@ class AppRouter {
             child: StaffFormScreen(staffId: id),
           );
         },
+      ),
+
+      // Customers Route
+      GoRoute(
+        path: customers,
+        pageBuilder: (context, state) =>
+            _buildSmoothPage(state: state, child: const CustomersScreen()),
       ),
 
       // Bookings Routes

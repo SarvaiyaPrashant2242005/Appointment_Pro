@@ -136,6 +136,27 @@ class BookingController {
     }
 
     /**
+     * Public cancellation by customer
+     * PATCH /api/v1/bookings/public-cancel/:id
+     */
+    async cancelPublic(req, res, next) {
+        try {
+            const result = await bookingService.updateBookingStatus(null, req.params.id, {
+                status: 'cancelled',
+                cancellationReason: req.body?.cancellationReason || 'Cancelled by customer via online portal.',
+            });
+            return sendSuccess(res, {
+                statusCode: 200,
+                message: 'Appointment cancelled successfully.',
+                messageToShow: result.messageToShow,
+                data: result.booking,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
      * Delete booking
      * DELETE /api/v1/bookings/:id
      */

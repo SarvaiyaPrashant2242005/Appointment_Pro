@@ -38,6 +38,13 @@ router.patch(
     bookingController.reschedule
 );
 
+// 4. Public customer cancellation via booking reference / ID
+router.patch(
+    '/public-cancel/:id',
+    validate(bookingIdParamSchema, 'params'),
+    bookingController.cancelPublic
+);
+
 // All subsequent routes require user authentication
 router.use(authenticate);
 

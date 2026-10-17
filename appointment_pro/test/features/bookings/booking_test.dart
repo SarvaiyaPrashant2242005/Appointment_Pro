@@ -3,6 +3,7 @@ import 'package:appointment_pro/features/availability/data/models/availability_m
 import 'package:appointment_pro/features/bussiness_setup/data/models/business_model.dart';
 import 'package:appointment_pro/features/bookings/data/datasources/booking_local_datasource.dart';
 import 'package:appointment_pro/features/bookings/data/models/booking_model.dart';
+import 'package:appointment_pro/features/bookings/data/models/booking_slot_model.dart';
 import 'package:appointment_pro/features/bookings/data/repositories/booking_repository.dart';
 import 'package:appointment_pro/features/bookings/data/utils/booking_availability_calculator.dart';
 import 'package:appointment_pro/features/bookings/data/utils/booking_slug_helper.dart';
@@ -48,6 +49,94 @@ void main() {
       expect(fromJson.status, BookingStatus.confirmed);
       expect(fromJson.canComplete, isTrue);
       expect(fromJson.canConfirm, isFalse);
+    });
+
+    test('human-friendly booking ID display prevents raw UUID and overflow', () {
+      final now = DateTime(2026, 10, 15, 10, 0);
+
+      // Case 1: Backend generates human reference (e.g. AP-849201)
+      final refBooking = BookingModel(
+        id: 'AP-849201',
+        bookingReference: 'AP-849201',
+        businessId: 'biz_1',
+        serviceId: 'srv_1',
+        customerName: 'Alice',
+        customerPhone: '5551234',
+        startAt: now,
+        endAt: now.add(const Duration(minutes: 30)),
+        price: 25.0,
+      );
+      expect(refBooking.displayId, 'AP-849201');
+      expect(refBooking.displayId.length, lessThanOrEqualTo(10));
+
+      // Case 2: Legacy raw UUID from database is cleanly formatted to AP-XXXXXX
+      final uuidBooking = BookingModel(
+        id: 'a444a36f-31ef-41aa-94a5-cb6a6358ded4',
+        businessId: 'biz_1',
+        serviceId: 'srv_1',
+        customerName: 'John Doe',
+        customerPhone: '5559876',
+        startAt: now,
+        endAt: now.add(const Duration(minutes: 30)),
+        price: 50.0,
+      );
+      expect(uuidBooking.displayId, 'AP-A444A3');
+      expect(uuidBooking.displayId.startsWith('AP-'), isTrue);
+      expect(uuidBooking.displayId.contains('-31ef'), isFalse);
+
+      // Case 3: fromJson prioritizes booking_reference from API response
+      final jsonResponse = {
+        'id': 'a444a36f-31ef-41aa-94a5-cb6a6358ded4',
+        'booking_reference': 'AP-739210',
+        'business_id': 'biz_1',
+        'service_id': 'srv_1',
+        'customer_name': 'John Doe',
+        'customer_phone': '5559876',
+        'start_at': now.toIso8601String(),
+        'end_at': now.add(const Duration(minutes: 30)).toIso8601String(),
+        'price': 50.0,
+        'status': 'confirmed',
+      };
+      final parsed = BookingModel.fromJson(jsonResponse);
+      expect(parsed.displayId, 'AP-739210');
+      expect(parsed.id, 'AP-739210');
+    });
+
+    test('BookingSlot formats times in 12-hour format with AM/PM', () {
+      // Morning slot: 09:30 - 10:15
+      final morningSlot = BookingSlot(
+        startAt: DateTime(2026, 10, 17, 9, 30),
+        endAt: DateTime(2026, 10, 17, 10, 15),
+        startTimeString: '09:30',
+        endTimeString: '10:15',
+      );
+      expect(morningSlot.startTime12, '9:30 AM');
+      expect(morningSlot.endTime12, '10:15 AM');
+      expect(morningSlot.formattedTime, '9:30 AM - 10:15 AM');
+      expect(morningSlot.timeRangeLabel, '9:30 AM - 10:15 AM');
+
+      // Afternoon slot: 14:00 - 14:50 (formerly 14:00 - 14:50 in 24h)
+      final afternoonSlot = BookingSlot(
+        startAt: DateTime(2026, 10, 17, 14, 0),
+        endAt: DateTime(2026, 10, 17, 14, 50),
+        startTimeString: '14:00',
+        endTimeString: '14:50',
+      );
+      expect(afternoonSlot.startTime12, '2:00 PM');
+      expect(afternoonSlot.endTime12, '2:50 PM');
+      expect(afternoonSlot.formattedTime, '2:00 PM - 2:50 PM');
+      expect(afternoonSlot.timeRangeLabel, '2:00 PM - 2:50 PM');
+
+      // Evening slot: 18:30 - 19:15
+      final eveningSlot = BookingSlot(
+        startAt: DateTime(2026, 10, 17, 18, 30),
+        endAt: DateTime(2026, 10, 17, 19, 15),
+        startTimeString: '18:30',
+        endTimeString: '19:15',
+      );
+      expect(eveningSlot.startTime12, '6:30 PM');
+      expect(eveningSlot.endTime12, '7:15 PM');
+      expect(eveningSlot.formattedTime, '6:30 PM - 7:15 PM');
     });
 
     test('validates status transitions properly', () {

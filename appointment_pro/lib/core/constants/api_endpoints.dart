@@ -73,9 +73,18 @@ class ApiEndpoints {
 
   // Bookings endpoints
   static const String bookings = '/bookings';
+  static String bookingById(String id) => '/bookings/$id';
+  static String bookingStatus(String id) => '/bookings/$id/status';
+  static String bookingReschedule(String id) => '/bookings/$id/reschedule';
+  static String bookingByRef(String ref) => '/bookings/ref/$ref';
+  static String bookingPublic(String slug) => '/bookings/public/$slug';
+  static String bookingPublicReschedule(String id) =>
+      '/bookings/public-reschedule/$id';
+  static String bookingPublicCancel(String id) => '/bookings/public-cancel/$id';
 
   // Customers endpoints
   static const String customers = '/customers';
+  static String customerById(String id) => '/customers/$id';
 
   // Payments endpoints
   static const String payments = '/payments';

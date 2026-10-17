@@ -38,8 +38,8 @@ class BookingTimeSlots extends StatelessWidget {
                 Icons.event_busy_rounded,
                 size: 40,
                 color: isDark
-                    ? AppColors.darkTextSecondary.withOpacity(0.5)
-                    : AppColors.textSecondary.withOpacity(0.5),
+                    ? AppColors.darkTextSecondary.withValues(alpha: 0.5)
+                    : AppColors.textSecondary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 12),
               Text(

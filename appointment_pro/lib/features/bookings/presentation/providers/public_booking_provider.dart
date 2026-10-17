@@ -356,9 +356,11 @@ class PublicBookingNotifier extends Notifier<PublicBookingState> {
       final staffMember = state.selectedStaff ??
           state.allStaff.where((s) => s.id == assignedStaffId).firstOrNull;
 
-      final bookingId = 'bk_${DateTime.now().millisecondsSinceEpoch}';
+      final bookingRef =
+          'AP-${100000 + (DateTime.now().millisecondsSinceEpoch % 900000)}';
       final booking = BookingModel(
-        id: bookingId,
+        id: bookingRef,
+        bookingReference: bookingRef,
         businessId: business.id,
         serviceId: service.id,
         serviceName: service.name,

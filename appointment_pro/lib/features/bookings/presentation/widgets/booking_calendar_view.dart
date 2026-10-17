@@ -767,7 +767,7 @@ class _BookingCalendarViewState extends ConsumerState<BookingCalendarView> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'ID: ${booking.id}',
+                          'ID: ${booking.displayId}',
                           style: TextStyle(
                             fontFamily: 'monospace',
                             fontSize: 11,
