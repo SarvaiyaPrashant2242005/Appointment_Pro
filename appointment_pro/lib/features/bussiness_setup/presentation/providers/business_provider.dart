@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/local_storage_service.dart';
+import '../../../../core/services/api_client.dart';
 import '../../data/models/business_model.dart';
 import '../../data/repositories/business_repository.dart';
 
 final businessRepositoryProvider = Provider<BusinessRepository>((ref) {
-  return BusinessRepository(LocalStorageService());
+  final apiClient = ref.watch(apiClientProvider);
+  return BusinessRepository(apiClient);
 });
 
 final businessProvider =
@@ -22,8 +23,15 @@ class BusinessController extends AsyncNotifier<List<BusinessModel>> {
     return _repository.getBusinesses();
   }
 
+  /// Manually re-fetches businesses from server
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => _repository.getBusinesses());
+  }
+
   Future<void> createBusiness(BusinessModel business) async {
     final previous = state.asData?.value ?? [];
+    state = const AsyncLoading();
 
     try {
       final updated = await _repository.createBusiness(business);
@@ -36,6 +44,7 @@ class BusinessController extends AsyncNotifier<List<BusinessModel>> {
 
   Future<void> updateBusiness(BusinessModel business) async {
     final previous = state.asData?.value ?? [];
+    state = const AsyncLoading();
 
     try {
       final updated = await _repository.updateBusiness(business);
@@ -48,9 +57,23 @@ class BusinessController extends AsyncNotifier<List<BusinessModel>> {
 
   Future<void> setActiveBusiness(String id) async {
     final previous = state.asData?.value ?? [];
+    state = const AsyncLoading();
 
     try {
       final updated = await _repository.setActiveBusiness(id);
+      state = AsyncData(updated);
+    } catch (_) {
+      state = AsyncData(previous);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteBusiness(String id) async {
+    final previous = state.asData?.value ?? [];
+    state = const AsyncLoading();
+
+    try {
+      final updated = await _repository.deleteBusiness(id);
       state = AsyncData(updated);
     } catch (_) {
       state = AsyncData(previous);

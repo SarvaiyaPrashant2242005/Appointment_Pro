@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../data/models/business_model.dart';
@@ -106,7 +107,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
             phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
           )
         : BusinessModel(
-            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            id: '',
             name: _name.text.trim(),
             type: _type,
             otherType: _type == 'Other' ? _otherType.text.trim() : null,
@@ -118,6 +119,41 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
           );
 
     await widget.onSubmit(business);
+  }
+
+  Widget _buildPreviewLogo() {
+    if (_logoPath == null || _logoPath!.trim().isEmpty) {
+      return const Icon(
+        Icons.add_a_photo_outlined,
+        size: 32,
+        color: AppColors.textSecondary,
+      );
+    }
+    final path = _logoPath!.trim();
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 32),
+      );
+    }
+    if (path.startsWith('/')) {
+      final fullUrl = '${ApiEndpoints.baseOrigin}$path';
+      return Image.network(
+        fullUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 32),
+      );
+    }
+    final file = File(path);
+    if (file.existsSync()) {
+      return Image.file(
+        file,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 32),
+      );
+    }
+    return const Icon(Icons.business, size: 32);
   }
 
   @override
@@ -148,18 +184,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                   color: isDark ? AppColors.darkInputFill : AppColors.inputFill,
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: _logoPath == null
-                    ? const Icon(
-                        Icons.add_a_photo_outlined,
-                        size: 32,
-                        color: AppColors.textSecondary,
-                      )
-                    : Image.file(
-                        File(_logoPath!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.business, size: 32),
-                      ),
+                child: _buildPreviewLogo(),
               ),
             ),
           ),

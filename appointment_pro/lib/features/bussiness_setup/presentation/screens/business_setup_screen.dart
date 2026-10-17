@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../core/errors/api_exception.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../providers/business_provider.dart';
@@ -93,13 +94,13 @@ class BusinessSetupScreen extends ConsumerWidget {
                               context.go(AppRouter.businessList);
                             }
                           }
-                        } catch (_) {
+                        } catch (e) {
                           if (!context.mounted) return;
 
-                          AppToast.error(
-                            context,
-                            'Unable to save business. Please try again.',
-                          );
+                          final msg = e is ApiException
+                              ? e.messageToShow
+                              : 'Unable to save business. Please try again.';
+                          AppToast.error(context, msg);
                         }
                       },
                     ),

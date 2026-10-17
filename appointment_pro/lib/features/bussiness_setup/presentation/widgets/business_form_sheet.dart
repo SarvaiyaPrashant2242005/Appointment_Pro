@@ -1,3 +1,4 @@
+import 'package:appointment_pro/core/errors/api_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -163,10 +164,10 @@ class _BusinessFormBottomSheetState
                           }
                         } catch (e) {
                           if (!context.mounted) return;
-                          AppToast.error(
-                            context,
-                            'Unable to save business: ${e.toString()}',
-                          );
+                          final message = e is ApiException
+                              ? e.messageToShow
+                              : 'Unable to save business: ${e.toString().replaceFirst('Exception: ', '')}';
+                          AppToast.error(context, message);
                         } finally {
                           if (mounted) {
                             setState(() => _isLoading = false);
