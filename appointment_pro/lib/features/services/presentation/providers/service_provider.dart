@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/local_storage_service.dart';
+import '../../../../core/services/api_client.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../data/models/service_model.dart';
 import '../../data/repositories/service_repository.dart';
 
 final serviceRepositoryProvider = Provider<ServiceRepository>((ref) {
-  final storage = ref.watch(localStorageServiceProvider);
-  return ServiceRepository(storage);
+  final apiClient = ref.watch(apiClientProvider);
+  return ServiceRepository(apiClient);
 });
 
 final servicesProvider =
@@ -40,8 +40,8 @@ class ServicesController extends AsyncNotifier<List<ServiceModel>> {
     final previous = state.asData?.value ?? [];
 
     try {
-      await _repository.createService(scopedService);
-      state = AsyncData([...previous, scopedService]);
+      final created = await _repository.createService(scopedService);
+      state = AsyncData([...previous, created]);
     } catch (_) {
       state = AsyncData(previous);
       rethrow;
@@ -58,9 +58,9 @@ class ServicesController extends AsyncNotifier<List<ServiceModel>> {
     final previous = state.asData?.value ?? [];
 
     try {
-      await _repository.updateService(scopedService);
+      final saved = await _repository.updateService(scopedService);
       final updatedList = previous
-          .map((s) => s.id == scopedService.id ? scopedService : s)
+          .map((s) => s.id == saved.id ? saved : s)
           .toList();
       state = AsyncData(updatedList);
     } catch (_) {
@@ -76,10 +76,10 @@ class ServicesController extends AsyncNotifier<List<ServiceModel>> {
     final previous = state.asData?.value ?? [];
 
     try {
-      await _repository.toggleStatus(businessId, serviceId);
+      final toggled = await _repository.toggleStatus(businessId, serviceId);
       final updatedList = previous.map((s) {
         if (s.id == serviceId) {
-          return s.copyWith(isActive: !s.isActive, updatedAt: DateTime.now());
+          return toggled;
         }
         return s;
       }).toList();

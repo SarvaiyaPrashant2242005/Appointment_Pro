@@ -64,18 +64,39 @@ class ServiceModel {
   };
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic val) {
+      if (val == null) return DateTime.now();
+      return DateTime.tryParse(val.toString()) ?? DateTime.now();
+    }
+
+    final rawPrice = json['price'];
+    final parsedPrice = rawPrice is num
+        ? rawPrice.toDouble()
+        : double.tryParse(rawPrice?.toString() ?? '0') ?? 0.0;
+
+    final rawDuration = json['durationMinutes'] ?? json['duration_minutes'];
+    final parsedDuration = rawDuration is num
+        ? rawDuration.toInt()
+        : int.tryParse(rawDuration?.toString() ?? '30') ?? 30;
+
+    final rawBuffer = json['bufferMinutes'] ?? json['buffer_minutes'];
+    final parsedBuffer = rawBuffer is num
+        ? rawBuffer.toInt()
+        : int.tryParse(rawBuffer?.toString() ?? '0') ?? 0;
+
     return ServiceModel(
-      id: json['id'] as String,
-      businessId: json['businessId'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String?,
-      price: (json['price'] as num).toDouble(),
-      durationMinutes: (json['durationMinutes'] as num).toInt(),
-      bufferMinutes: (json['bufferMinutes'] as num?)?.toInt() ?? 0,
-      isActive: json['isActive'] as bool? ?? true,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(
-        json['updatedAt'] as String? ?? json['createdAt'] as String,
+      id: json['id']?.toString() ?? '',
+      businessId:
+          (json['businessId'] ?? json['business_id'])?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString(),
+      price: parsedPrice,
+      durationMinutes: parsedDuration,
+      bufferMinutes: parsedBuffer,
+      isActive: json['isActive'] ?? json['is_active'] ?? true,
+      createdAt: parseDate(json['createdAt'] ?? json['created_at']),
+      updatedAt: parseDate(
+        json['updatedAt'] ?? json['updated_at'] ?? json['createdAt'] ?? json['created_at'],
       ),
     );
   }

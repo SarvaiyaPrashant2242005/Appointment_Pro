@@ -71,9 +71,15 @@ class StaffModel {
   };
 
   factory StaffModel.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic val) {
+      if (val == null) return DateTime.now();
+      return DateTime.tryParse(val.toString()) ?? DateTime.now();
+    }
+
     Map<int, DaySchedule>? parsedSchedule;
-    if (json['schedule'] != null && json['schedule'] is Map) {
-      final raw = json['schedule'] as Map<String, dynamic>;
+    final rawSchedule = json['schedule'];
+    if (rawSchedule != null && rawSchedule is Map) {
+      final raw = Map<String, dynamic>.from(rawSchedule);
       parsedSchedule = {};
       raw.forEach((k, v) {
         final day = int.tryParse(k);
@@ -85,23 +91,29 @@ class StaffModel {
       });
     }
 
+    final rawServices = json['assignedServiceIds'] ?? json['services'];
+    List<String> serviceIds = [];
+    if (rawServices is List) {
+      serviceIds = rawServices.map((e) {
+        if (e is Map && e['id'] != null) return e['id'].toString();
+        return e.toString();
+      }).toList();
+    }
+
     return StaffModel(
-      id: json['id'] as String,
-      businessId: json['businessId'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String?,
-      phone: json['phone'] as String?,
-      avatarPath: json['avatarPath'] as String?,
-      assignedServiceIds:
-          (json['assignedServiceIds'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      id: json['id']?.toString() ?? '',
+      businessId:
+          (json['businessId'] ?? json['business_id'])?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      email: json['email']?.toString(),
+      phone: json['phone']?.toString(),
+      avatarPath: (json['avatarPath'] ?? json['avatar_url'])?.toString(),
+      assignedServiceIds: serviceIds,
       schedule: parsedSchedule,
-      isActive: json['isActive'] as bool? ?? true,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(
-        json['updatedAt'] as String? ?? json['createdAt'] as String,
+      isActive: json['isActive'] ?? json['is_active'] ?? true,
+      createdAt: parseDate(json['createdAt'] ?? json['created_at']),
+      updatedAt: parseDate(
+        json['updatedAt'] ?? json['updated_at'] ?? json['createdAt'] ?? json['created_at'],
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/errors/api_exception.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../data/models/staff_model.dart';
@@ -186,10 +187,12 @@ class _StaffFormBottomSheetState extends ConsumerState<_StaffFormBottomSheet> {
                                 }
                               } catch (e) {
                                 if (!context.mounted) return;
-                                AppToast.error(
-                                  context,
-                                  'Unable to save staff: ${e.toString()}',
-                                );
+                                final message = e is ApiException
+                                    ? e.messageToShow
+                                    : e is Exception
+                                        ? e.toString().replaceFirst('Exception: ', '')
+                                        : 'Unable to save staff: ${e.toString()}';
+                                AppToast.error(context, message);
                               } finally {
                                 if (mounted) {
                                   setState(() => _isLoading = false);

@@ -1,6 +1,7 @@
 const Joi = require('joi');
 
 const createServiceSchema = Joi.object({
+    id: Joi.string().trim().optional(),
     businessId: Joi.string().trim().optional(),
     business_id: Joi.string().trim().optional(),
 

@@ -37,9 +37,15 @@ class TimeRange {
   Map<String, dynamic> toJson() => {'startTime': startTime, 'endTime': endTime};
 
   factory TimeRange.fromJson(Map<String, dynamic> json) {
+    String formatTime(dynamic time, String def) {
+      if (time == null) return def;
+      final s = time.toString();
+      return s.length >= 5 ? s.substring(0, 5) : s;
+    }
+
     return TimeRange(
-      startTime: json['startTime'] as String? ?? '09:00',
-      endTime: json['endTime'] as String? ?? '17:00',
+      startTime: formatTime(json['startTime'] ?? json['start_time'], '09:00'),
+      endTime: formatTime(json['endTime'] ?? json['end_time'], '17:00'),
     );
   }
 }
@@ -155,11 +161,22 @@ class DaySchedule {
   };
 
   factory DaySchedule.fromJson(Map<String, dynamic> json) {
+    final rawDay = json['dayOfWeek'] ?? json['day_of_week'];
+    final dayOfWeek = rawDay is int
+        ? rawDay
+        : int.tryParse(rawDay?.toString() ?? '1') ?? 1;
+
+    String formatTime(dynamic time, String def) {
+      if (time == null) return def;
+      final s = time.toString();
+      return s.length >= 5 ? s.substring(0, 5) : s;
+    }
+
     return DaySchedule(
-      dayOfWeek: json['dayOfWeek'] as int,
-      isOpen: json['isOpen'] as bool? ?? true,
-      openTime: json['openTime'] as String? ?? '09:00',
-      closeTime: json['closeTime'] as String? ?? '18:00',
+      dayOfWeek: dayOfWeek,
+      isOpen: json['isOpen'] ?? json['is_open'] ?? true,
+      openTime: formatTime(json['openTime'] ?? json['open_time'], '09:00'),
+      closeTime: formatTime(json['closeTime'] ?? json['close_time'], '18:00'),
       breaks:
           (json['breaks'] as List<dynamic>?)
               ?.map(
@@ -318,17 +335,38 @@ class BusinessAvailability {
   };
 
   factory BusinessAvailability.fromJson(Map<String, dynamic> json) {
-    final rawSchedule = json['weeklySchedule'] as Map<String, dynamic>? ?? {};
     final schedule = <int, DaySchedule>{};
-    rawSchedule.forEach((key, val) {
-      final day = int.tryParse(key);
-      if (day != null && val is Map) {
-        schedule[day] = DaySchedule.fromJson(Map<String, dynamic>.from(val));
+
+    final rawSchedule = json['weeklySchedule'];
+    if (rawSchedule is Map) {
+      rawSchedule.forEach((key, val) {
+        final day = int.tryParse(key.toString());
+        if (day != null && val is Map) {
+          schedule[day] = DaySchedule.fromJson(Map<String, dynamic>.from(val));
+        }
+      });
+    } else if (rawSchedule is List) {
+      for (final item in rawSchedule) {
+        if (item is Map) {
+          final ds = DaySchedule.fromJson(Map<String, dynamic>.from(item));
+          schedule[ds.dayOfWeek] = ds;
+        }
       }
-    });
+    }
+
+    final rawOperatingHours = json['operatingHours'];
+    if (rawOperatingHours is List) {
+      for (final item in rawOperatingHours) {
+        if (item is Map) {
+          final ds = DaySchedule.fromJson(Map<String, dynamic>.from(item));
+          schedule[ds.dayOfWeek] = ds;
+        }
+      }
+    }
 
     return BusinessAvailability(
-      businessId: json['businessId'] as String? ?? '',
+      businessId:
+          (json['businessId'] ?? json['business_id'])?.toString() ?? '',
       weeklySchedule: schedule,
       timezone: json['timezone'] as String? ?? 'Asia/Kolkata',
     );

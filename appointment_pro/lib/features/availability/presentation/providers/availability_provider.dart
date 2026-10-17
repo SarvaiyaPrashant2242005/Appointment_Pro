@@ -1,13 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../../../../core/services/api_client.dart';
 import '../../../../core/services/local_storage_service.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../data/models/availability_model.dart';
 import '../../data/repositories/availability_repository.dart';
 
 final availabilityRepositoryProvider = Provider<AvailabilityRepository>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
   final storage = ref.watch(localStorageServiceProvider);
-  return AvailabilityRepository(storage);
+  return AvailabilityRepository(apiClient, storage);
 });
 
 final availabilityProvider =
@@ -40,8 +41,9 @@ class AvailabilityController extends AsyncNotifier<BusinessAvailability> {
     final updatedAvailability = current.copyWith(weeklySchedule: updatedMap);
 
     try {
-      await _repository.saveBusinessAvailability(updatedAvailability);
-      state = AsyncData(updatedAvailability);
+      final saved =
+          await _repository.saveBusinessAvailability(updatedAvailability);
+      state = AsyncData(saved);
     } catch (_) {
       state = AsyncData(current);
       rethrow;
@@ -144,8 +146,9 @@ class AvailabilityController extends AsyncNotifier<BusinessAvailability> {
     final updatedAvailability = current.copyWith(weeklySchedule: updatedMap);
 
     try {
-      await _repository.saveBusinessAvailability(updatedAvailability);
-      state = AsyncData(updatedAvailability);
+      final saved =
+          await _repository.saveBusinessAvailability(updatedAvailability);
+      state = AsyncData(saved);
     } catch (_) {
       state = AsyncData(current);
       rethrow;

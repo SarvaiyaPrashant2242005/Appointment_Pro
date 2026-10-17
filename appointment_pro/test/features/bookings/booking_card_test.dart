@@ -49,7 +49,7 @@ void main() {
 
       // Tap "Mark Completed"
       await tester.tap(markCompletedButton);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(completeCalled, isTrue);
     },
@@ -88,6 +88,8 @@ void main() {
           ),
         ),
       );
+
+      await tester.pumpAndSettle();
 
       expect(find.text('Compact Width User'), findsOneWidget);
       expect(find.text('Mark Completed'), findsOneWidget);

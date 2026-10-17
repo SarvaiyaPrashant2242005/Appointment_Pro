@@ -53,12 +53,23 @@ class ApiEndpoints {
 
   // Services endpoints
   static const String services = '/services';
+  static String serviceById(String id) => '/services/$id';
+  static String serviceToggle(String id) => '/services/$id/toggle-status';
+  static String servicesPublic(String slug) => '/services/public/$slug';
 
   // Staff endpoints
   static const String staff = '/staff';
+  static String staffById(String id) => '/staff/$id';
+  static String staffToggle(String id) => '/staff/$id/toggle-status';
+  static String staffPublic(String slug) => '/staff/public/$slug';
 
   // Availability endpoints
   static const String availability = '/availability';
+  static const String operatingHours = '/availability/operating-hours';
+  static String availabilityToggle(int dayOfWeek) =>
+      '/availability/operating-hours/$dayOfWeek/toggle';
+  static String availabilityPublic(String slug) =>
+      '/availability/public/$slug';
 
   // Bookings endpoints
   static const String bookings = '/bookings';

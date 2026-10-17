@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/local_storage_service.dart';
+import '../../../../core/services/api_client.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../data/models/staff_model.dart';
 import '../../data/repositories/staff_repository.dart';
 
 final staffRepositoryProvider = Provider<StaffRepository>((ref) {
-  final storage = ref.watch(localStorageServiceProvider);
-  return StaffRepository(storage);
+  final apiClient = ref.watch(apiClientProvider);
+  return StaffRepository(apiClient);
 });
 
 final staffProvider = AsyncNotifierProvider<StaffController, List<StaffModel>>(
@@ -39,8 +39,8 @@ class StaffController extends AsyncNotifier<List<StaffModel>> {
     final previous = state.asData?.value ?? [];
 
     try {
-      await _repository.createStaff(scopedStaff);
-      state = AsyncData([...previous, scopedStaff]);
+      final created = await _repository.createStaff(scopedStaff);
+      state = AsyncData([...previous, created]);
     } catch (_) {
       state = AsyncData(previous);
       rethrow;
@@ -57,9 +57,9 @@ class StaffController extends AsyncNotifier<List<StaffModel>> {
     final previous = state.asData?.value ?? [];
 
     try {
-      await _repository.updateStaff(scopedStaff);
+      final saved = await _repository.updateStaff(scopedStaff);
       final updatedList = previous
-          .map((s) => s.id == scopedStaff.id ? scopedStaff : s)
+          .map((s) => s.id == saved.id ? saved : s)
           .toList();
       state = AsyncData(updatedList);
     } catch (_) {
@@ -75,10 +75,10 @@ class StaffController extends AsyncNotifier<List<StaffModel>> {
     final previous = state.asData?.value ?? [];
 
     try {
-      await _repository.toggleStaffStatus(businessId, staffId);
+      final toggled = await _repository.toggleStaffStatus(businessId, staffId);
       final updatedList = previous.map((s) {
         if (s.id == staffId) {
-          return s.copyWith(isActive: !s.isActive, updatedAt: DateTime.now());
+          return toggled;
         }
         return s;
       }).toList();
