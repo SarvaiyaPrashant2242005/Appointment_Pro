@@ -1,0 +1,2704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>AppointmentPro • Online Appointment Booking</title>
+  <meta name="description" content="Reserve your appointment in seconds with real-time slot booking and instant confirmation." />
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --surface-1: #111827;
+      --surface-2: #161f30;
+      --surface-3: #1f2c42;
+      --accent: #00d2c4;
+      --accent-glow: rgba(0, 210, 196, 0.25);
+      --accent-secondary: #06b6d4;
+      --accent-gradient: linear-gradient(135deg, #00d2c4 0%, #0284c7 100%);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(0, 210, 196, 0.45);
+      --success: #10b981;
+      --danger: #ef4444;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-pill: 9999px;
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+      --shadow-glow: 0 0 24px var(--accent-glow);
+      --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(0, 210, 196, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(2, 132, 199, 0.08) 0%, transparent 45%);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Header Nav */
+    header.app-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(9, 13, 22, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 18px;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--accent-gradient);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 16px rgba(0, 210, 196, 0.35);
+      flex-shrink: 0;
+    }
+
+    .brand-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #090d16;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-text h1 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-text span {
+      font-size: 0.72rem;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    @media (max-width: 600px) {
+      header.app-header {
+        padding: 10px 12px;
+      }
+      .brand-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+      }
+      .brand-icon svg {
+        width: 17px;
+        height: 17px;
+      }
+      .brand-text h1 {
+        font-size: 0.92rem;
+      }
+      .brand-text span {
+        font-size: 0.64rem;
+      }
+      .btn-ghost {
+        padding: 6px 9px;
+        font-size: 0.72rem;
+      }
+      .btn-ghost span.btn-text-full {
+        display: none;
+      }
+    }
+
+    /* Main Container */
+    main.booking-layout {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 16px 80px;
+      flex: 1;
+    }
+
+    @media (max-width: 899px) {
+      main.booking-layout {
+        padding: 14px 12px 115px; /* Leaves space for mobile sticky floating action bar */
+      }
+    }
+
+    /* Business Hero Card */
+    .business-card {
+      background: linear-gradient(135deg, rgba(22, 31, 48, 0.92) 0%, rgba(17, 24, 39, 0.92) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .business-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+    }
+
+    @media (max-width: 640px) {
+      .business-card {
+        padding: 14px 12px;
+        border-radius: var(--radius-md);
+        margin-bottom: 16px;
+      }
+    }
+
+    .biz-profile {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .biz-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: rgba(0, 210, 196, 0.12);
+      border: 2px solid rgba(0, 210, 196, 0.3);
+      display: grid;
+      place-items: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--accent);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .biz-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .biz-details h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .verified-icon {
+      color: var(--accent);
+      display: inline-flex;
+    }
+
+    .biz-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .tag-badge {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tag-badge.status-open {
+      background: rgba(16, 185, 129, 0.14);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .tag-badge.status-open::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #34d399;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .qr-badge-btn {
+      background: rgba(0, 210, 196, 0.1);
+      border: 1px solid rgba(0, 210, 196, 0.3);
+      color: var(--accent);
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .qr-badge-btn:hover {
+      background: rgba(0, 210, 196, 0.18);
+      transform: translateY(-1px);
+    }
+
+    /* Grid Layout */
+    .booking-grid {
+      display: grid;
+      grid-template-columns: 100%;
+      gap: 20px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    @media (min-width: 900px) {
+      .booking-grid {
+        grid-template-columns: minmax(0, 1fr) 360px;
+        align-items: start;
+        gap: 24px;
+      }
+    }
+
+    .wizard-left {
+      min-width: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .wizard-right {
+      min-width: 0;
+      width: 100%;
+    }
+
+    @media (max-width: 899px) {
+      .wizard-right {
+        display: none !important; /* Mobile sticky bottom bar takes over for steps 1-3 */
+      }
+    }
+
+    /* Mobile Dedicated Step Header (Screens < 768px) */
+    .mobile-step-header {
+      display: none;
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mobile-step-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+      min-height: 28px;
+    }
+
+    .mobile-back-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .mobile-back-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .mobile-step-counter {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-left: auto;
+      letter-spacing: 0.2px;
+    }
+
+    .mobile-prog-track {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .mobile-prog-seg {
+      height: 5px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mobile-prog-seg.completed {
+      background: #10b981;
+    }
+
+    .mobile-prog-seg.active {
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 210, 196, 0.65);
+    }
+
+    /* Desktop Step Navigation Bar (Screens >= 768px) */
+    .steps-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 6px;
+      margin-bottom: 20px;
+      gap: 6px;
+      box-shadow: var(--shadow-sm);
+      width: 100%;
+      min-width: 0;
+    }
+
+    .step-tab {
+      width: 100%;
+      min-width: 0;
+      padding: 10px 6px;
+      text-align: center;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .step-tab .step-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      line-height: 1.1;
+    }
+
+    .step-tab span.num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      display: grid;
+      place-items: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .step-tab.active {
+      background: rgba(0, 210, 196, 0.12);
+      color: var(--accent);
+    }
+
+    .step-tab.active span.num {
+      background: var(--accent);
+      color: #090d16;
+    }
+
+    .step-tab.completed {
+      color: var(--text-secondary);
+    }
+
+    .step-tab.completed span.num {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+    }
+
+    /* Responsive visibility toggles */
+    @media (max-width: 767px) {
+      .steps-nav {
+        display: none !important;
+      }
+      .mobile-step-header {
+        display: block !important;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .steps-nav {
+        display: grid !important;
+      }
+      .mobile-step-header {
+        display: none !important;
+      }
+    }
+
+    /* Wizard Content Panels */
+    .step-panel {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .step-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 18px;
+    }
+
+    /* Cards Grid (Services) */
+    .service-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .service-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .service-card:hover {
+      background: var(--surface-2);
+      border-color: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .service-card.selected {
+      background: rgba(0, 210, 196, 0.08);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(0, 210, 196, 0.2);
+    }
+
+    .service-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .service-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .service-card.selected .service-icon-box {
+      background: var(--accent);
+      color: #090d16;
+    }
+
+    .service-meta h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .service-meta p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .service-meta .meta-tag {
+      font-size: 0.72rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .service-right {
+      text-align: right;
+    }
+
+    .service-price {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .service-duration {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    /* Staff Selection Grid */
+    .staff-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .staff-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.2s;
+    }
+
+    .staff-card:hover {
+      background: var(--surface-2);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .staff-card.selected {
+      background: rgba(0, 210, 196, 0.08);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(0, 210, 196, 0.2);
+    }
+
+    .staff-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .staff-card.selected .staff-avatar {
+      background: var(--accent);
+      color: #090d16;
+    }
+
+    .staff-info h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .staff-info p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Date Selector Carousel */
+    .date-scroll-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 2px 14px;
+      margin-bottom: 18px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+    }
+
+    .date-scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .date-pill {
+      flex: 0 0 64px;
+      scroll-snap-align: start;
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .date-pill:hover {
+      background: var(--surface-2);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .date-pill.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #090d16;
+      font-weight: 800;
+      box-shadow: 0 0 16px rgba(0, 210, 196, 0.4);
+      transform: scale(1.04);
+    }
+
+    .date-pill .day-name {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      opacity: 0.8;
+      margin-bottom: 2px;
+    }
+
+    .date-pill .day-number {
+      font-size: 1.25rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .date-pill .month-name {
+      font-size: 0.68rem;
+      opacity: 0.75;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    /* Slots Period & Grid (12-Hour Format) */
+    .period-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin: 16px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .slots-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 330px) {
+      .slots-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .slot-btn {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 6px;
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      gap: 2px;
+    }
+
+    .slot-btn:hover {
+      background: var(--surface-2);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .slot-btn.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #090d16;
+      font-weight: 800;
+      box-shadow: 0 0 16px rgba(0, 210, 196, 0.35);
+    }
+
+    .slot-badge {
+      font-size: 0.68rem;
+      opacity: 0.7;
+    }
+
+    .no-slots-box {
+      background: var(--surface-1);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 32px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text-secondary);
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      font-size: 16px; /* Prevents unwanted auto-zoom on mobile browsers */
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 210, 196, 0.15);
+    }
+
+    .phone-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .phone-input-group select {
+      flex: 0 0 110px;
+    }
+
+    /* Sidebar Summary Card */
+    .summary-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      position: sticky;
+      top: 90px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .summary-card h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .summary-row-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .summary-row-content {
+      flex: 1;
+    }
+
+    .summary-row-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .summary-row-val {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .summary-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    .price-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .price-total-row span.label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .price-total-row span.total {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent-gradient);
+      color: #090d16;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 18px rgba(0, 210, 196, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(0, 210, 196, 0.45);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Mobile Sticky Floating Action Bar */
+    .mobile-bottom-bar {
+      display: none;
+    }
+
+    .mobile-booking-summary {
+      display: none;
+    }
+
+    @media (max-width: 899px) {
+      .mobile-booking-summary {
+        display: block;
+        background: var(--surface-2);
+        border: 1px solid var(--border-accent);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .mobile-bottom-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: rgba(17, 24, 39, 0.97);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid rgba(0, 210, 196, 0.35);
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+        animation: slideUpBar 0.3s ease;
+      }
+
+      @keyframes slideUpBar {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+
+      .mobile-bar-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .mobile-bar-total {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1.2;
+      }
+
+      .mobile-bar-sub {
+        font-size: 0.74rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .mobile-bar-btn {
+        width: auto !important;
+        flex: 0 0 auto;
+        padding: 12px 22px !important;
+        font-size: 0.9rem !important;
+        font-weight: 800 !important;
+        border-radius: var(--radius-pill) !important;
+        white-space: nowrap;
+        box-shadow: 0 4px 14px rgba(0, 210, 196, 0.35) !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .service-card {
+        padding: 14px 12px;
+      }
+      .service-icon-box {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+      }
+      .service-meta h3 {
+        font-size: 0.94rem;
+      }
+      .service-price {
+        font-size: 1rem;
+      }
+      .staff-grid {
+        grid-template-columns: 1fr;
+      }
+      .confirm-card {
+        padding: 18px 14px;
+      }
+      .booking-id-banner {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+      }
+      .copy-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Confirmation Success Screen */
+    .confirmation-view {
+      display: none;
+      max-width: 650px;
+      margin: 0 auto;
+      text-align: center;
+      animation: scaleUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .success-check-wrapper {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(0, 210, 196, 0.15);
+      border: 3px solid var(--accent);
+      display: grid;
+      place-items: center;
+      margin: 0 auto 18px;
+      color: var(--accent);
+      box-shadow: var(--shadow-glow);
+      animation: pulse-ring 2.5s infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(0, 210, 196, 0.4); }
+      70% { box-shadow: 0 0 0 18px rgba(0, 210, 196, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 210, 196, 0); }
+    }
+
+    .confirm-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 24px 0;
+      text-align: left;
+    }
+
+    .booking-id-banner {
+      background: rgba(0, 210, 196, 0.1);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .booking-id-text span.label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .booking-id-text span.id {
+      font-family: var(--font-mono);
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.8px;
+    }
+
+    .copy-btn {
+      background: rgba(0, 210, 196, 0.18);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent);
+      color: #090d16;
+    }
+
+    .notice-box {
+      background: rgba(2, 132, 199, 0.1);
+      border: 1px solid rgba(2, 132, 199, 0.3);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      font-size: 0.82rem;
+      color: #7dd3fc;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+
+    /* Modal Overlay (QR & Manage Lookup) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: grid;
+    }
+
+    .modal-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      .modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+      }
+      .modal-card {
+        max-width: 100%;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        padding: 24px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+        animation: slideUpModal 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes slideUpModal {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 12px 18px;
+      color: var(--text-primary);
+      font-size: 0.86rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.3s ease;
+      pointer-events: auto;
+    }
+
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0, 0, 0, 0.2);
+      border-top-color: #090d16;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Skeleton Loading Placeholder */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header class="app-header">
+    <div class="header-inner">
+      <a href="#" class="brand" id="brandLink">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h5v5H7z"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1 id="brandTitle">AppointmentPro</h1>
+          <span>Online Booking</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <button class="btn-ghost" id="openQrBtn" title="View Booking QR Code">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4zm2 2v2h2V6zm8-2h6v6h-6zm2 2v2h2V6zM4 14h6v6H4zm2 2v2h2v-2zm10 0h2v2h-2zm2 2h2v2h-2zm-2 2h2v2h-2zm4-4h2v2h-2zm-2-2h2v2h-2z"/></svg>
+          <span class="btn-text-full">QR Code</span>
+        </button>
+        <button class="btn-ghost" id="openManageBtn" title="Lookup Existing Booking">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <span class="btn-text-full">Lookup</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Booking Layout -->
+  <main class="booking-layout">
+
+    <!-- Business Header Card -->
+    <section class="business-card" id="businessCard">
+      <div class="biz-profile">
+        <div class="biz-logo" id="bizLogo">A</div>
+        <div class="biz-details">
+          <h2 id="bizName">Apex Medico <span class="verified-icon" title="Verified Business"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span></h2>
+          <div class="biz-badges">
+            <span class="tag-badge status-open" id="bizStatus">Open for Bookings</span>
+            <span class="tag-badge" id="bizType">Medical & OPD Clinic</span>
+            <span class="tag-badge" id="bizLocation">🇮🇳 India</span>
+          </div>
+        </div>
+      </div>
+      <button class="qr-badge-btn" id="heroQrBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4zm2 2v2h2V6zm8-2h6v6h-6zm2 2v2h2V6zM4 14h6v6H4zm2 2v2h2v-2zm10 0h2v2h-2zm2 2h2v2h-2zm-2 2h2v2h-2zm4-4h2v2h-2zm-2-2h2v2h-2z"/></svg>
+        QR Booking Link
+      </button>
+    </section>
+
+    <!-- Interactive Booking Wizard -->
+    <div class="booking-grid" id="wizardGrid">
+      
+      <!-- Left Column: Steps & Forms -->
+      <div class="wizard-left">
+        
+        <!-- Dedicated Mobile Step Header (< 768px) -->
+        <div class="mobile-step-header" id="mobileStepHeader">
+          <div class="mobile-step-top">
+            <button class="mobile-back-btn" id="mobileBackBtn" type="button" onclick="goBackStep()" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+              <span>Back</span>
+            </button>
+            <span class="mobile-step-counter" id="mobileStepCounter">Step 1 of 4: Select Service</span>
+          </div>
+          <div class="mobile-prog-track">
+            <div class="mobile-prog-seg active" id="progSeg1"></div>
+            <div class="mobile-prog-seg" id="progSeg2"></div>
+            <div class="mobile-prog-seg" id="progSeg3"></div>
+            <div class="mobile-prog-seg" id="progSeg4"></div>
+          </div>
+        </div>
+
+        <!-- Desktop Step Progress Bar (>= 768px) -->
+        <nav class="steps-nav" id="stepsNav">
+          <button class="step-tab active" data-step="1">
+            <span class="num">1</span>
+            <span class="step-text">Service</span>
+          </button>
+          <button class="step-tab" data-step="2">
+            <span class="num">2</span>
+            <span class="step-text">Specialist</span>
+          </button>
+          <button class="step-tab" data-step="3">
+            <span class="num">3</span>
+            <span class="step-text">Date & Time</span>
+          </button>
+          <button class="step-tab" data-step="4">
+            <span class="num">4</span>
+            <span class="step-text">Details</span>
+          </button>
+        </nav>
+
+        <!-- STEP 1: SERVICE SELECTION -->
+        <div class="step-panel active" id="step1">
+          <div class="section-title">
+            <span>Select a Service</span>
+            <span class="tag-badge" id="serviceCountBadge">1 available</span>
+          </div>
+          <p class="section-subtitle">Choose the treatment or consultation you would like to reserve.</p>
+
+          <div class="service-list" id="servicesList">
+            <!-- Dynamic Services -->
+            <div class="skeleton" style="height: 74px; margin-bottom: 12px;"></div>
+            <div class="skeleton" style="height: 74px;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 2: SPECIALIST SELECTION -->
+        <div class="step-panel" id="step2">
+          <div class="section-title">
+            <span>Choose Specialist</span>
+            <button class="btn-ghost" style="padding: 4px 10px; font-size: 0.75rem;" onclick="goToStep(1)">Back to Services</button>
+          </div>
+          <p class="section-subtitle">Select a specific practitioner or let our smart system auto-assign the first available.</p>
+
+          <div class="staff-grid" id="staffGrid">
+            <!-- Dynamic Staff Cards -->
+          </div>
+        </div>
+
+        <!-- STEP 3: DATE & 12-HOUR TIME SLOTS -->
+        <div class="step-panel" id="step3">
+          <div class="section-title">
+            <span>Select Appointment Date & Time</span>
+            <button class="btn-ghost" style="padding: 4px 10px; font-size: 0.75rem;" onclick="goToStep(2)">Back</button>
+          </div>
+          <p class="section-subtitle">Time slots are shown in 12-hour format (AM/PM) based on working hours.</p>
+
+          <!-- 30-Day Horizontal Date Picker -->
+          <div class="date-scroll-container" id="dateScroll">
+            <!-- Dynamic Dates -->
+          </div>
+
+          <div id="slotsContainer">
+            <!-- Dynamic Morning, Afternoon, Evening Slots in 12-Hour format -->
+          </div>
+        </div>
+
+        <!-- STEP 4: CUSTOMER CONTACT DETAILS -->
+        <div class="step-panel" id="step4">
+          <div class="section-title">
+            <span>Your Contact Details</span>
+            <button class="btn-ghost" style="padding: 4px 10px; font-size: 0.75rem;" onclick="goToStep(3)">Back to Time</button>
+          </div>
+          <p class="section-subtitle">We will send your Booking Reference ID and appointment updates to this phone number.</p>
+
+          <!-- Mobile Recap Summary (Visible on mobile) -->
+          <div class="mobile-booking-summary" id="mobileStep4Summary">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Appointment Summary</span>
+              <span style="font-size: 1.2rem; font-weight: 800; color: var(--accent);" id="mobSumPrice">₹0.00</span>
+            </div>
+            <div style="font-size: 0.95rem; font-weight: 700; margin-bottom: 4px;" id="mobSumService">Service</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 2px;" id="mobSumStaff">👤 Specialist</div>
+            <div style="font-size: 0.82rem; color: var(--accent); font-weight: 600;" id="mobSumTime">📅 Date & Time</div>
+          </div>
+
+          <form id="bookingForm" onsubmit="handleBookingSubmit(event)">
+            <div class="form-group">
+              <label class="form-label" for="custName">Full Name *</label>
+              <input type="text" id="custName" class="form-input" placeholder="e.g. John Doe" required minlength="2" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="custPhone">Mobile Phone Number *</label>
+              <div class="phone-input-group">
+                <select id="custCountryCode" class="form-select">
+                  <option value="+91" selected>🇮🇳 +91 (IN)</option>
+                  <option value="+1">🇺🇸 +1 (US)</option>
+                  <option value="+44">🇬🇧 +44 (UK)</option>
+                  <option value="+971">🇦🇪 +971 (UAE)</option>
+                  <option value="+61">🇦🇺 +61 (AU)</option>
+                  <option value="+65">🇸🇬 +65 (SG)</option>
+                </select>
+                <input type="tel" id="custPhone" class="form-input" placeholder="e.g. 9876543210" required pattern="[0-9]{7,15}" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="custEmail">Email Address (Optional)</label>
+              <input type="email" id="custEmail" class="form-input" placeholder="e.g. john@example.com" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="custNotes">Special Requests / Symptoms (Optional)</label>
+              <textarea id="custNotes" class="form-textarea" rows="3" placeholder="Tell us if you have any preferences or symptoms..."></textarea>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Sticky Summary & CTA -->
+      <aside class="wizard-right">
+        <div class="summary-card">
+          <h3>
+            <span>Appointment Summary</span>
+            <span class="tag-badge" id="stepBadge">Step 1 of 4</span>
+          </h3>
+
+          <div class="summary-row">
+            <div class="summary-row-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <div class="summary-row-content">
+              <div class="summary-row-label">Service</div>
+              <div class="summary-row-val" id="sumService">Select a service</div>
+            </div>
+          </div>
+
+          <div class="summary-row">
+            <div class="summary-row-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <div class="summary-row-content">
+              <div class="summary-row-label">Specialist</div>
+              <div class="summary-row-val" id="sumStaff">Any Available Specialist</div>
+            </div>
+          </div>
+
+          <div class="summary-row">
+            <div class="summary-row-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+            </div>
+            <div class="summary-row-content">
+              <div class="summary-row-label">Date & 12-Hour Time</div>
+              <div class="summary-row-val" id="sumDateTime">Select date & time</div>
+            </div>
+          </div>
+
+          <div class="summary-divider"></div>
+
+          <div class="price-total-row">
+            <span class="label">Total Amount</span>
+            <span class="total" id="sumPrice">₹0.00</span>
+          </div>
+
+          <button class="btn-primary" id="primaryCtaBtn" onclick="handlePrimaryCtaClick()">
+            <span>Continue to Specialist</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+          </button>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- STEP 5: BOOKING CONFIRMED SUCCESS VIEW (Matches Flutter Screen) -->
+    <div class="confirmation-view" id="confirmationView">
+      <div class="success-check-wrapper">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+      </div>
+
+      <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;">Booking Confirmed!</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;" id="confirmSubtitle">Your appointment with Apex Medico has been successfully reserved.</p>
+
+      <div class="confirm-card">
+        <!-- Booking ID Banner (Clean Reference code e.g. AP-849201, NOT raw UUID) -->
+        <div class="booking-id-banner">
+          <div class="booking-id-text">
+            <span class="label">Booking Reference ID</span>
+            <span class="id" id="confirmBookingId">AP-000000</span>
+          </div>
+          <button class="copy-btn" id="copyBookingIdBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            Copy Booking ID
+          </button>
+        </div>
+
+        <!-- Appointment Details -->
+        <div class="summary-row">
+          <div class="summary-row-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+          <div class="summary-row-content">
+            <div class="summary-row-label">Service</div>
+            <div class="summary-row-val" id="confirmService">Service</div>
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-row-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg></div>
+          <div class="summary-row-content">
+            <div class="summary-row-label">Business</div>
+            <div class="summary-row-val" id="confirmBusiness">Apex Medico</div>
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-row-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg></div>
+          <div class="summary-row-content">
+            <div class="summary-row-label">Appointment Date & Time (12-Hour)</div>
+            <div class="summary-row-val" id="confirmDateTime">Date & Time</div>
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-row-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+          <div class="summary-row-content">
+            <div class="summary-row-label">Customer Name</div>
+            <div class="summary-row-val" id="confirmCustomer">Customer Name</div>
+          </div>
+        </div>
+
+        <div class="summary-row" id="confirmStaffRow">
+          <div class="summary-row-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+          <div class="summary-row-content">
+            <div class="summary-row-label">Specialist</div>
+            <div class="summary-row-val" id="confirmStaff">Staff Specialist</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Important Notice Box -->
+      <div class="notice-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink: 0;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        <div>
+          <strong>Important:</strong> Please save your Booking ID. You will need your Booking ID and phone number to look up, reschedule, or cancel your appointment.
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="resetToNewBooking()">Book Another Appointment</button>
+      <button class="btn-secondary" onclick="openManageModal(bookingState.confirmedBooking?.bookingReference || bookingState.confirmedBooking?.id)">Manage or Reschedule Booking</button>
+    </div>
+
+    <!-- Mobile Sticky Floating Action Bar (Visible only on screens <= 899px) -->
+    <div class="mobile-bottom-bar" id="mobileBottomBar">
+      <div class="mobile-bar-info">
+        <div class="mobile-bar-total" id="mobileBarPrice">₹0.00</div>
+        <div class="mobile-bar-sub" id="mobileBarDesc">Step 1: Pick a Service</div>
+      </div>
+      <button class="btn-primary mobile-bar-btn" id="mobileBarCtaBtn" onclick="handlePrimaryCtaClick()">
+        <span id="mobileBarCtaText">Continue</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- QR Code Modal Dialog -->
+  <div class="modal-overlay" id="qrModal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeModal('qrModal')">&times;</button>
+      <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">Customer QR Booking Code</h3>
+      <p style="color: var(--text-secondary); font-size: 0.82rem; margin-bottom: 20px;">
+        Customers can scan this QR code with their mobile phone camera to reserve appointments directly.
+      </p>
+
+      <div id="qrCodeContainer" style="background: white; padding: 16px; border-radius: 12px; display: inline-block; margin-bottom: 16px;">
+        <!-- QR Code SVG generated dynamically -->
+      </div>
+
+      <div style="font-size: 0.76rem; color: var(--text-muted); word-break: break-all; margin-bottom: 16px;" id="qrLinkText">
+        http://localhost:8080/slug/apex-medico-2061
+      </div>
+
+      <button class="btn-primary" onclick="copyCurrentBookingLink()">Copy Booking Link</button>
+    </div>
+  </div>
+
+  <!-- Booking Lookup & Management Modal -->
+  <div class="modal-overlay" id="manageModal">
+    <div class="modal-card" style="max-width: 480px; text-align: left;">
+      <button class="modal-close" onclick="closeModal('manageModal')">&times;</button>
+      <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px;">Look Up Your Appointment</h3>
+      <p style="color: var(--text-secondary); font-size: 0.82rem; margin-bottom: 18px;">
+        Enter your Booking Reference ID (e.g. AP-849201) and phone number to check status.
+      </p>
+
+      <form id="lookupForm" onsubmit="handleLookupSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="lookupId">Booking Reference ID *</label>
+          <input type="text" id="lookupId" class="form-input" placeholder="e.g. AP-849201" required style="font-family: var(--font-mono);" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="lookupPhone">Customer Phone Number *</label>
+          <input type="tel" id="lookupPhone" class="form-input" placeholder="e.g. 9876543210" required />
+        </div>
+
+        <div id="lookupResultBox" style="display: none; margin-bottom: 16px;"></div>
+
+        <button type="submit" class="btn-primary" id="lookupSubmitBtn">
+          <span>Find Appointment</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Client-side Logic -->
+  <script>
+    /**
+     * Configuration & State
+     */
+    // Dynamically resolve API base: If running on server port 5000 use /api/v1, otherwise http://localhost:5000/api/v1
+    const API_BASE = (window.location.port === '5000' || window.location.pathname.startsWith('/api'))
+      ? '/api/v1'
+      : 'http://localhost:5000/api/v1';
+
+    const bookingState = {
+      businessSlug: '',
+      business: null,
+      services: [],
+      staffList: [],
+      availability: null,
+      selectedService: null,
+      selectedStaff: null, // null means "Any Available Specialist"
+      selectedDate: new Date(),
+      selectedSlot: null,
+      currentStep: 1,
+      confirmedBooking: null,
+    };
+
+    /**
+     * Resolve business slug or ID from URL:
+     * - /slug/<businessSlug>
+     * - /book/<businessSlug>
+     * - ?slug=<businessSlug> or ?businessId=<id> or ?id=<id>
+     */
+    /**
+     * Resolve business slug and ID from URL:
+     * Specific URL format required: /<businessSlug>/<businessId>
+     * e.g. /apex-medico-2061/a42ac5d4-6a69-4762-bc39-d366b7519220
+     */
+    function resolveBusinessIdentifier() {
+      // 1. Check path segments: e.g. /apex-medico-2061/a42ac5d4-6a69-4762-bc39-d366b7519220
+      const segments = window.location.pathname.split('/').filter(Boolean);
+
+      // Strip leading routing prefix if present (/slug/ or /book/)
+      const cleanSegments = (segments.length >= 2 && ['slug', 'book', 'business'].includes(segments[0].toLowerCase()))
+        ? segments.slice(1)
+        : segments;
+
+      if (cleanSegments.length >= 2) {
+        return {
+          slug: decodeURIComponent(cleanSegments[0]).trim(),
+          id: decodeURIComponent(cleanSegments[1]).trim(),
+        };
+      }
+
+      // 2. Query parameter support: ?slug=apex-medico-2061&id=a42ac5d4-6a69-4762-bc39-d366b7519220
+      const urlParams = new URLSearchParams(window.location.search);
+      const querySlug = urlParams.get('slug') || urlParams.get('businessSlug');
+      const queryId = urlParams.get('id') || urlParams.get('businessId');
+      if (querySlug && queryId) {
+        return {
+          slug: querySlug.trim(),
+          id: queryId.trim(),
+        };
+      }
+
+      // Enforce: Must have both slug and business ID!
+      return null;
+    }
+
+    /**
+     * Bootstraps business data and services
+     */
+    async function initBookingApp() {
+      const identifiers = resolveBusinessIdentifier();
+
+      if (!identifiers || !identifiers.slug || !identifiers.id) {
+        console.warn('[AppointmentPro] URL must be: /<business-slug>/<business-id>');
+        renderMissingBusinessState('Missing business slug or ID in the URL. Format must be: /<business-slug>/<business-id>');
+        return;
+      }
+
+      bookingState.businessSlug = identifiers.slug;
+      bookingState.businessId = identifiers.id;
+      console.log(`[AppointmentPro] Loading booking for slug: ${identifiers.slug}, id: ${identifiers.id}`);
+
+      try {
+        // 1. Fetch business details by ID
+        const bizRes = await fetch(`${API_BASE}/businesses/public/${identifiers.id}`);
+        const bizJson = await bizRes.json();
+        if (!bizJson.success || !bizJson.data) {
+          throw new Error(bizJson.messageToShow || bizJson.message || 'Business not found');
+        }
+        bookingState.business = bizJson.data;
+
+        // Verify that the slug in URL matches the business's actual slug
+        if (bookingState.business.slug && bookingState.business.slug.toLowerCase() !== identifiers.slug.toLowerCase()) {
+          throw new Error(`Invalid URL: Slug "${identifiers.slug}" does not match business ID "${identifiers.id}".`);
+        }
+
+        // Render Hero
+        renderBusinessHero(bookingState.business);
+
+        // 2. Fetch services
+        const srvRes = await fetch(`${API_BASE}/services/public/${identifiers.id}`);
+        const srvJson = await srvRes.json();
+        bookingState.services = (srvJson.data && srvJson.data.services) ? srvJson.data.services : (srvJson.data || []);
+        renderServices(bookingState.services);
+
+        // 3. Fetch staff
+        const staffRes = await fetch(`${API_BASE}/staff/public/${identifiers.id}`);
+        const staffJson = await staffRes.json();
+        bookingState.staffList = (staffJson.data && staffJson.data.staff) ? staffJson.data.staff : (staffJson.data || []);
+        renderStaff(bookingState.staffList);
+
+        // 4. Fetch availability
+        const availRes = await fetch(`${API_BASE}/availability/public/${identifiers.id}`);
+        const availJson = await availRes.json();
+        bookingState.availability = availJson.data;
+
+        // Render Date Carousel
+        renderDateCarousel();
+
+        // Auto select first service if only 1 service exists
+        if (bookingState.services.length === 1) {
+          selectService(bookingState.services[0].id);
+        }
+
+        updateSummary();
+      } catch (err) {
+        console.error('Initialization error:', err);
+        showToast(err.message || 'Could not load business details.', 'error');
+        renderMissingBusinessState(err.message);
+      }
+    }
+
+    /**
+     * Renders clean state when URL does not match /:businessSlug/:businessId
+     */
+    function renderMissingBusinessState(errorMessage = null) {
+      document.title = 'AppointmentPro • Online Appointment Booking';
+      const brand = document.getElementById('brandTitle');
+      if (brand) brand.textContent = 'AppointmentPro';
+      const bCard = document.getElementById('businessCard');
+      if (bCard) bCard.style.display = 'none';
+      const wizGrid = document.getElementById('wizardGrid');
+      if (wizGrid) wizGrid.style.display = 'none';
+
+      let container = document.getElementById('missingBusinessNotice');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'missingBusinessNotice';
+        container.style.cssText = 'max-width: 620px; margin: 40px auto; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px 28px; text-align: center; box-shadow: var(--shadow-sm);';
+        document.querySelector('main.booking-layout').prepend(container);
+      }
+
+      container.innerHTML = `
+        <div style="width: 64px; height: 64px; border-radius: 18px; background: rgba(0, 210, 196, 0.12); border: 2px solid rgba(0, 210, 196, 0.3); display: grid; place-items: center; margin: 0 auto 20px; color: var(--accent);">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h4v4H4V4zm2 2v0h0v0zm-2 6h4v4H4v-4zm2 2v0h0v0zm-2 6h4v4H4v-4zm2 2v0h0v0zm6-14h4v4h-4V4zm2 2v0h0v0zm-2 6h4v4h-4v-4zm2 2v0h0v0zm-2 6h4v4h-4v-4zm2 2v0h0v0zm6-14h4v4h-4V4zm2 2v0h0v0zm-2 6h4v4h-4v-4zm2 2v0h0v0zm-2 6h4v4h-4v-4zm2 2v0h0v0z"/></svg>
+        </div>
+        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 8px;">Invalid Booking Link</h2>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin-bottom: 20px;">
+          ${errorMessage ? `<span style="color: #fca5a5;">${errorMessage}</span><br/>` : ''}
+          This booking template must be accessed using the business's unique URL format or QR code:
+        </p>
+
+        <div style="background: rgba(0, 210, 196, 0.08); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 14px; margin-bottom: 24px; word-break: break-all;">
+          <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Required URL Format</div>
+          <a href="http://localhost:8080/apex-medico-2061/a42ac5d4-6a69-4762-bc39-d366b7519220" style="color: var(--accent); font-family: var(--font-mono); font-size: 0.88rem; text-decoration: none; font-weight: 700;">
+            http://localhost:8080/apex-medico-2061/a42ac5d4-6a69-4762-bc39-d366b7519220
+          </a>
+        </div>
+
+        <a href="http://localhost:8080/apex-medico-2061/a42ac5d4-6a69-4762-bc39-d366b7519220" 
+           class="btn-primary" style="display: inline-flex; text-decoration: none; max-width: 320px; margin: 0 auto;">
+          Open Apex Medico Booking
+        </a>
+      `;
+    }
+
+    /**
+     * Renders Business Hero Profile
+     */
+    function renderBusinessHero(b) {
+      document.title = `${b.name} • Book Online | AppointmentPro`;
+      document.getElementById('brandTitle').textContent = b.name;
+      document.getElementById('bizName').childNodes[0].textContent = b.name + ' ';
+      document.getElementById('bizType').textContent = b.type ? (b.type.charAt(0).toUpperCase() + b.type.slice(1)) : 'Business';
+      
+      const logoEl = document.getElementById('bizLogo');
+      if (b.logoUrl) {
+        const fullLogo = b.logoUrl.startsWith('http') ? b.logoUrl : `${API_BASE.replace('/api/v1', '')}${b.logoUrl}`;
+        logoEl.innerHTML = `<img src="${fullLogo}" alt="${b.name}" />`;
+      } else {
+        logoEl.textContent = (b.name || 'A').charAt(0).toUpperCase();
+      }
+
+      if (b.currency) {
+        document.getElementById('bizLocation').textContent = `${b.currency} Currency`;
+      }
+
+      // Update QR modal text with canonical URL format (/:slug/:businessId)
+      const canonicalHost = (window.location.port === '5000' || window.location.port === '8080')
+        ? window.location.host
+        : 'localhost:8080';
+      const canonicalUrl = `${window.location.protocol}//${canonicalHost}/${b.slug}/${b.id}`;
+      document.getElementById('qrLinkText').textContent = canonicalUrl;
+      generateQrSvg(canonicalUrl);
+    }
+
+    /**
+     * Renders Step 1 Services
+     */
+    function renderServices(services) {
+      const container = document.getElementById('servicesList');
+      document.getElementById('serviceCountBadge').textContent = `${services.length} available`;
+
+      if (!services.length) {
+        container.innerHTML = `<div class="no-slots-box"><p>No services currently open for booking.</p></div>`;
+        return;
+      }
+
+      const currencySymbol = getCurrencySymbol(bookingState.business?.currency);
+
+      container.innerHTML = services.map(s => `
+        <div class="service-card ${bookingState.selectedService?.id === s.id ? 'selected' : ''}" 
+             onclick="selectService('${s.id}')" id="srv-card-${s.id}">
+          <div class="service-left">
+            <div class="service-icon-box">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+            </div>
+            <div class="service-meta">
+              <h3>${escapeHtml(s.name)}</h3>
+              <p>${s.description ? escapeHtml(s.description) : `${s.durationMinutes || 30} minutes session`}</p>
+              <div class="meta-tag">⏱️ ${s.durationMinutes || 30} mins</div>
+            </div>
+          </div>
+          <div class="service-right">
+            <div class="service-price">${currencySymbol}${parseFloat(s.price || 0).toFixed(2)}</div>
+            <div class="service-duration">Standard Rate</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectService(serviceId) {
+      const service = bookingState.services.find(s => s.id === serviceId);
+      if (!service) return;
+
+      bookingState.selectedService = service;
+      document.querySelectorAll('.service-card').forEach(el => el.classList.remove('selected'));
+      const activeCard = document.getElementById(`srv-card-${serviceId}`);
+      if (activeCard) activeCard.classList.add('selected');
+
+      // Update eligible staff
+      renderStaff(bookingState.staffList);
+
+      // Re-generate slots for selected date
+      generateTimeSlots();
+      updateSummary();
+    }
+
+    /**
+     * Renders Step 2 Staff
+     */
+    function renderStaff(staffList) {
+      const grid = document.getElementById('staffGrid');
+
+      // Filter staff assigned to selected service if applicable
+      const serviceId = bookingState.selectedService?.id;
+      const eligible = staffList.filter(st => {
+        if (!st.assignedServiceIds || !st.assignedServiceIds.length) return true;
+        return serviceId ? st.assignedServiceIds.includes(serviceId) : true;
+      });
+
+      let html = `
+        <div class="staff-card ${bookingState.selectedStaff === null ? 'selected' : ''}" 
+             onclick="selectStaff(null)">
+          <div class="staff-avatar">★</div>
+          <div class="staff-info">
+            <h4>Any Specialist</h4>
+            <p>Smart auto-assignment</p>
+          </div>
+        </div>
+      `;
+
+      html += eligible.map(st => `
+        <div class="staff-card ${bookingState.selectedStaff?.id === st.id ? 'selected' : ''}" 
+             onclick="selectStaff('${st.id}')">
+          <div class="staff-avatar">${(st.name || 'S').charAt(0).toUpperCase()}</div>
+          <div class="staff-info">
+            <h4>${escapeHtml(st.name)}</h4>
+            <p>${st.title ? escapeHtml(st.title) : 'Specialist'}</p>
+          </div>
+        </div>
+      `).join('');
+
+      grid.innerHTML = html;
+    }
+
+    function selectStaff(staffId) {
+      if (staffId === null) {
+        bookingState.selectedStaff = null;
+      } else {
+        bookingState.selectedStaff = bookingState.staffList.find(s => s.id === staffId) || null;
+      }
+      renderStaff(bookingState.staffList);
+      generateTimeSlots();
+      updateSummary();
+    }
+
+    /**
+     * Renders 30-Day Horizontal Date Carousel
+     */
+    function renderDateCarousel() {
+      const container = document.getElementById('dateScroll');
+      const now = new Date();
+      const dates = [];
+
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+        dates.push(d);
+      }
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      container.innerHTML = dates.map((d, index) => {
+        const isSelected = isSameDay(d, bookingState.selectedDate);
+        return `
+          <div class="date-pill ${isSelected ? 'selected' : ''}" 
+               onclick="selectDate('${d.toISOString()}')" 
+               id="date-pill-${d.toISOString().slice(0, 10)}">
+            <div class="day-name">${index === 0 ? 'Today' : (index === 1 ? 'Tmrw' : dayNames[d.getDay()])}</div>
+            <div class="day-number">${d.getDate()}</div>
+            <div class="month-name">${monthNames[d.getMonth()]}</div>
+          </div>
+        `;
+      }).join('');
+
+      generateTimeSlots();
+    }
+
+    function selectDate(isoDateStr) {
+      bookingState.selectedDate = new Date(isoDateStr);
+      bookingState.selectedSlot = null;
+
+      document.querySelectorAll('.date-pill').forEach(el => el.classList.remove('selected'));
+      const activePill = document.getElementById(`date-pill-${isoDateStr.slice(0, 10)}`);
+      if (activePill) activePill.classList.add('selected');
+
+      generateTimeSlots();
+      updateSummary();
+    }
+
+    /**
+     * Generates Slots in 12-Hour Format (h:mm a, e.g. 9:00 AM - 9:50 AM)
+     */
+    function generateTimeSlots() {
+      const container = document.getElementById('slotsContainer');
+      const service = bookingState.selectedService;
+      if (!service) {
+        container.innerHTML = `<div class="no-slots-box"><p>Please choose a service first.</p></div>`;
+        return;
+      }
+
+      const durationMinutes = service.durationMinutes || 30;
+      const date = bookingState.selectedDate;
+
+      // Operating hours from availability or default 09:00 to 18:00
+      let openMinutes = 9 * 60; // 09:00
+      let closeMinutes = 18 * 60; // 18:00
+
+      if (bookingState.availability && Array.isArray(bookingState.availability.operatingHours)) {
+        // dayOfWeek 1=Monday...7=Sunday in ISO, in JS 0=Sunday
+        const jsDay = date.getDay();
+        const isoDay = jsDay === 0 ? 7 : jsDay;
+        const dayRecord = bookingState.availability.operatingHours.find(h => h.dayOfWeek === isoDay || h.day_of_week === isoDay);
+        if (dayRecord && dayRecord.isOpen !== false) {
+          if (dayRecord.openTime) openMinutes = timeStringToMinutes(dayRecord.openTime);
+          if (dayRecord.closeTime) closeMinutes = timeStringToMinutes(dayRecord.closeTime);
+        }
+      }
+
+      const now = new Date();
+      const isToday = isSameDay(date, now);
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      const slots = [];
+      for (let m = openMinutes; m + durationMinutes <= closeMinutes; m += durationMinutes) {
+        // Skip past slots for today
+        if (isToday && m <= currentMinutes + 15) continue;
+
+        const startDt = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(m / 60), m % 60);
+        const endDt = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor((m + durationMinutes) / 60), (m + durationMinutes) % 60);
+
+        // Format in 12-Hour format (AM/PM)
+        const start12 = format12Hour(startDt);
+        const end12 = format12Hour(endDt);
+        const range12 = `${start12} - ${end12}`;
+
+        const hour = startDt.getHours();
+        let period = 'morning';
+        if (hour >= 12 && hour < 17) period = 'afternoon';
+        else if (hour >= 17) period = 'evening';
+
+        slots.push({
+          startAt: startDt,
+          endAt: endDt,
+          label: range12,
+          start12,
+          period,
+        });
+      }
+
+      if (!slots.length) {
+        container.innerHTML = `
+          <div class="no-slots-box">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.4; margin-bottom: 8px;"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+            <h4>No Available Time Slots</h4>
+            <p style="font-size: 0.8rem; margin-top: 4px;">All slots for this date are fully booked or in the past. Please select another date.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const morning = slots.filter(s => s.period === 'morning');
+      const afternoon = slots.filter(s => s.period === 'afternoon');
+      const evening = slots.filter(s => s.period === 'evening');
+
+      let html = '';
+
+      if (morning.length) {
+        html += `<div class="period-title">☀️ Morning (${morning.length} slots)</div><div class="slots-grid">`;
+        html += morning.map(s => renderSlotButton(s)).join('');
+        html += `</div>`;
+      }
+
+      if (afternoon.length) {
+        html += `<div class="period-title">🌤️ Afternoon (${afternoon.length} slots)</div><div class="slots-grid">`;
+        html += afternoon.map(s => renderSlotButton(s)).join('');
+        html += `</div>`;
+      }
+
+      if (evening.length) {
+        html += `<div class="period-title">🌙 Evening (${evening.length} slots)</div><div class="slots-grid">`;
+        html += evening.map(s => renderSlotButton(s)).join('');
+        html += `</div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function renderSlotButton(slot) {
+      const isSelected = bookingState.selectedSlot && bookingState.selectedSlot.startAt.getTime() === slot.startAt.getTime();
+      return `
+        <button class="slot-btn ${isSelected ? 'selected' : ''}" 
+                onclick="selectSlot('${slot.startAt.toISOString()}', '${slot.endAt.toISOString()}', '${slot.label}')">
+          <span>${slot.label}</span>
+          <span class="slot-badge">Available</span>
+        </button>
+      `;
+    }
+
+    function selectSlot(startIso, endIso, label) {
+      bookingState.selectedSlot = {
+        startAt: new Date(startIso),
+        endAt: new Date(endIso),
+        label,
+      };
+
+      document.querySelectorAll('.slot-btn').forEach(btn => {
+        if (btn.querySelector('span').textContent === label) {
+          btn.classList.add('selected');
+        } else {
+          btn.classList.remove('selected');
+        }
+      });
+
+      updateSummary();
+    }
+
+    /**
+     * Wizard Navigation & Steps
+     */
+    function goToStep(step) {
+      bookingState.currentStep = step;
+
+      // 1. Update Desktop Nav Tabs
+      document.querySelectorAll('.step-tab').forEach(tab => {
+        const tabStep = parseInt(tab.dataset.step, 10);
+        tab.classList.remove('active', 'completed');
+        if (tabStep === step) tab.classList.add('active');
+        else if (tabStep < step) tab.classList.add('completed');
+      });
+
+      // 2. Update Dedicated Mobile Progress Segments & Header
+      for (let s = 1; s <= 4; s++) {
+        const seg = document.getElementById(`progSeg${s}`);
+        if (seg) {
+          seg.classList.remove('active', 'completed');
+          if (s === step) seg.classList.add('active');
+          else if (s < step) seg.classList.add('completed');
+        }
+      }
+
+      const mobileBackBtn = document.getElementById('mobileBackBtn');
+      const mobileStepCounter = document.getElementById('mobileStepCounter');
+      const stepNames = {
+        1: 'Step 1 of 4: Select Service',
+        2: 'Step 2 of 4: Choose Specialist',
+        3: 'Step 3 of 4: Date & Time',
+        4: 'Step 4 of 4: Contact Details'
+      };
+
+      if (mobileStepCounter) {
+        mobileStepCounter.textContent = stepNames[step] || `Step ${step} of 4`;
+      }
+      if (mobileBackBtn) {
+        mobileBackBtn.style.display = step > 1 ? 'inline-flex' : 'none';
+      }
+
+      // 3. Update Panels
+      document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
+      const activePanel = document.getElementById(`step${step}`);
+      if (activePanel) activePanel.classList.add('active');
+
+      document.getElementById('stepBadge').textContent = `Step ${step} of 4`;
+
+      // 4. Update Desktop & Mobile CTA Buttons
+      const cta = document.getElementById('primaryCtaBtn');
+      const mobileCta = document.getElementById('mobileBarCtaBtn');
+
+      const stepLabels = {
+        1: { desktop: '<span>Continue to Specialist</span><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>', mobile: '<span>Specialist</span> <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>' },
+        2: { desktop: '<span>Select Date & Time</span><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>', mobile: '<span>Date & Time</span> <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>' },
+        3: { desktop: '<span>Enter Your Details</span><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>', mobile: '<span>Your Details</span> <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>' },
+        4: { desktop: '<span>Confirm Appointment</span><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>', mobile: '<span>Confirm</span> <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>' },
+      };
+
+      if (cta && stepLabels[step]) cta.innerHTML = stepLabels[step].desktop;
+      if (mobileCta && stepLabels[step]) mobileCta.innerHTML = stepLabels[step].mobile;
+
+      updateSummary();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goBackStep() {
+      if (bookingState.currentStep > 1) {
+        goToStep(bookingState.currentStep - 1);
+      }
+    }
+
+    function handlePrimaryCtaClick() {
+      const step = bookingState.currentStep;
+
+      if (step === 1) {
+        if (!bookingState.selectedService) {
+          showToast('Please select a service first.', 'error');
+          return;
+        }
+        goToStep(2);
+      } else if (step === 2) {
+        goToStep(3);
+      } else if (step === 3) {
+        if (!bookingState.selectedSlot) {
+          showToast('Please select an appointment time slot.', 'error');
+          return;
+        }
+        goToStep(4);
+      } else if (step === 4) {
+        const form = document.getElementById('bookingForm');
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        handleBookingSubmit();
+      }
+    }
+
+    /**
+     * Submits Booking to Server POST /api/v1/bookings/public/:businessSlug
+     * Stores in DB and triggers push notification to owner!
+     */
+    async function handleBookingSubmit(e) {
+      if (e) e.preventDefault();
+
+      const name = document.getElementById('custName').value.trim();
+      const code = document.getElementById('custCountryCode').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const email = document.getElementById('custEmail').value.trim();
+      const notes = document.getElementById('custNotes').value.trim();
+
+      if (!name || name.length < 2) {
+        showToast('Please enter your full name.', 'error');
+        return;
+      }
+      if (!phone || phone.length < 7) {
+        showToast('Please enter a valid phone number.', 'error');
+        return;
+      }
+      if (!bookingState.selectedSlot) {
+        showToast('Please pick an appointment time slot.', 'error');
+        goToStep(3);
+        return;
+      }
+
+      const ctaBtn = document.getElementById('primaryCtaBtn');
+      const mobCtaBtn = document.getElementById('mobileBarCtaBtn');
+      if (ctaBtn) {
+        ctaBtn.disabled = true;
+        ctaBtn.innerHTML = `<span class="spinner"></span> <span>Reserving Appointment...</span>`;
+      }
+      if (mobCtaBtn) {
+        mobCtaBtn.disabled = true;
+        mobCtaBtn.innerHTML = `<span class="spinner"></span> <span>Reserving...</span>`;
+      }
+
+      const payload = {
+        serviceId: bookingState.selectedService.id,
+        staffId: bookingState.selectedStaff ? bookingState.selectedStaff.id : null,
+        customerName: name,
+        customerCountryCode: code,
+        customerPhone: phone,
+        customerEmail: email || null,
+        customerNotes: notes || null,
+        startAt: bookingState.selectedSlot.startAt.toISOString(),
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/bookings/public/${bookingState.businessSlug}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.messageToShow || data.message || 'Failed to complete booking reservation.');
+        }
+
+        const booking = data.data;
+        bookingState.confirmedBooking = booking;
+
+        showToast('Appointment confirmed! Notification sent to business.', 'success');
+        renderConfirmationView(booking);
+      } catch (err) {
+        console.error('Booking submission error:', err);
+        showToast(err.message || 'Booking reservation failed. Please check your slot and try again.', 'error');
+        if (ctaBtn) {
+          ctaBtn.disabled = false;
+          ctaBtn.innerHTML = `<span>Confirm Appointment</span><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>`;
+        }
+        if (mobCtaBtn) {
+          mobCtaBtn.disabled = false;
+          mobCtaBtn.innerHTML = `<span>Confirm</span> <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>`;
+        }
+      }
+    }
+
+    /**
+     * Renders Success View (Matches Flutter Booking Confirmed Screen)
+     */
+    function renderConfirmationView(booking) {
+      document.getElementById('wizardGrid').style.display = 'none';
+      const confView = document.getElementById('confirmationView');
+      confView.style.display = 'block';
+
+      // Hide mobile floating action bar on confirmation screen
+      const mobBar = document.getElementById('mobileBottomBar');
+      if (mobBar) mobBar.style.display = 'none';
+
+      // Human-friendly reference code (e.g. AP-849201)
+      const refCode = booking.bookingReference || booking.booking_reference || booking.id;
+      document.getElementById('confirmBookingId').textContent = refCode;
+      document.getElementById('confirmSubtitle').textContent = `Your appointment with ${bookingState.business?.name || 'Apex Medico'} has been successfully reserved.`;
+
+      document.getElementById('confirmService').textContent = booking.serviceName || bookingState.selectedService?.name || 'Service';
+      document.getElementById('confirmBusiness').textContent = bookingState.business?.name || 'Apex Medico';
+
+      const start = new Date(booking.startAt || booking.start_at || bookingState.selectedSlot.startAt);
+      const end = new Date(booking.endAt || booking.end_at || bookingState.selectedSlot.endAt);
+      const dateStr = start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+      const timeStr = `${format12Hour(start)} - ${format12Hour(end)}`;
+      document.getElementById('confirmDateTime').textContent = `${dateStr}\n${timeStr}`;
+
+      document.getElementById('confirmCustomer').textContent = booking.customerName || booking.customer_name;
+      document.getElementById('confirmStaff').textContent = booking.staffName || booking.staff_name || 'Staff Specialist';
+
+      // Setup Copy Button
+      document.getElementById('copyBookingIdBtn').onclick = () => {
+        navigator.clipboard.writeText(refCode).then(() => {
+          showToast(`Booking ID ${refCode} copied to clipboard!`, 'success');
+        });
+      };
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetToNewBooking() {
+      bookingState.selectedSlot = null;
+      bookingState.confirmedBooking = null;
+      document.getElementById('confirmationView').style.display = 'none';
+      document.getElementById('wizardGrid').style.display = 'grid';
+
+      // Restore mobile bottom bar
+      const mobBar = document.getElementById('mobileBottomBar');
+      if (mobBar) mobBar.style.display = '';
+
+      goToStep(1);
+    }
+
+    /**
+     * Updates Sticky Sidebar Summary
+     */
+    function updateSummary() {
+      const sym = getCurrencySymbol(bookingState.business?.currency);
+
+      // Service
+      const srvEl = document.getElementById('sumService');
+      const priceEl = document.getElementById('sumPrice');
+      if (bookingState.selectedService) {
+        srvEl.textContent = `${bookingState.selectedService.name} (${bookingState.selectedService.durationMinutes} min)`;
+        priceEl.textContent = `${sym}${parseFloat(bookingState.selectedService.price || 0).toFixed(2)}`;
+      } else {
+        srvEl.textContent = 'Select a service';
+        priceEl.textContent = `${sym}0.00`;
+      }
+
+      // Staff
+      const staffEl = document.getElementById('sumStaff');
+      if (bookingState.selectedStaff) {
+        staffEl.textContent = bookingState.selectedStaff.name;
+      } else {
+        staffEl.textContent = 'Any Available Specialist';
+      }
+
+      // Date & 12-Hour Time
+      const dtEl = document.getElementById('sumDateTime');
+      if (bookingState.selectedSlot) {
+        const dayStr = bookingState.selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        dtEl.textContent = `${dayStr} at ${bookingState.selectedSlot.label}`;
+      } else {
+        const dayStr = bookingState.selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        dtEl.textContent = `${dayStr} (Pick a time slot)`;
+      }
+
+      // Update Mobile Floating Action Bar info
+      const mobPrice = document.getElementById('mobileBarPrice');
+      const mobDesc = document.getElementById('mobileBarDesc');
+      if (mobPrice) {
+        mobPrice.textContent = bookingState.selectedService 
+          ? `${sym}${parseFloat(bookingState.selectedService.price || 0).toFixed(2)}`
+          : `${sym}0.00`;
+      }
+      if (mobDesc) {
+        if (bookingState.selectedSlot) {
+          const dStr = bookingState.selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          mobDesc.textContent = `${dStr} • ${bookingState.selectedSlot.label}`;
+        } else if (bookingState.selectedService) {
+          mobDesc.textContent = `${bookingState.selectedService.name} (${bookingState.selectedService.durationMinutes} min)`;
+        } else {
+          mobDesc.textContent = 'Step 1: Pick a Service';
+        }
+      }
+
+      // Update Step 4 Mobile Recap Summary Card
+      const mobSumPrice = document.getElementById('mobSumPrice');
+      const mobSumService = document.getElementById('mobSumService');
+      const mobSumStaff = document.getElementById('mobSumStaff');
+      const mobSumTime = document.getElementById('mobSumTime');
+      if (mobSumPrice) {
+        mobSumPrice.textContent = bookingState.selectedService 
+          ? `${sym}${parseFloat(bookingState.selectedService.price || 0).toFixed(2)}`
+          : `${sym}0.00`;
+      }
+      if (mobSumService) {
+        mobSumService.textContent = bookingState.selectedService
+          ? `${bookingState.selectedService.name} (${bookingState.selectedService.durationMinutes} min)`
+          : 'Service: Not selected';
+      }
+      if (mobSumStaff) {
+        mobSumStaff.textContent = bookingState.selectedStaff
+          ? `👤 Specialist: ${bookingState.selectedStaff.name}`
+          : '👤 Specialist: Any Available Specialist';
+      }
+      if (mobSumTime) {
+        if (bookingState.selectedSlot) {
+          const dStr = bookingState.selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          mobSumTime.textContent = `📅 ${dStr} • ${bookingState.selectedSlot.label}`;
+        } else {
+          mobSumTime.textContent = '📅 Time: Not selected';
+        }
+      }
+    }
+
+    /**
+     * Modal Controls
+     */
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    document.getElementById('openQrBtn').onclick = () => openModal('qrModal');
+    document.getElementById('heroQrBtn').onclick = () => openModal('qrModal');
+    document.getElementById('openManageBtn').onclick = () => openManageModal();
+
+    function openManageModal(prefillId) {
+      if (prefillId) {
+        document.getElementById('lookupId').value = prefillId;
+      }
+      openModal('manageModal');
+    }
+
+    function copyCurrentBookingLink() {
+      const linkToCopy = (document.getElementById('qrLinkText') && document.getElementById('qrLinkText').textContent) 
+        ? document.getElementById('qrLinkText').textContent.trim() 
+        : window.location.href;
+      navigator.clipboard.writeText(linkToCopy).then(() => {
+        showToast('Booking link copied to clipboard!', 'success');
+        closeModal('qrModal');
+      });
+    }
+
+    /**
+     * Appointment Lookup Submit (Public /ref/:bookingReference)
+     */
+    async function handleLookupSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('lookupId').value.trim();
+      const phone = document.getElementById('lookupPhone').value.trim();
+      const resultBox = document.getElementById('lookupResultBox');
+      const submitBtn = document.getElementById('lookupSubmitBtn');
+
+      if (!id || !phone) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="spinner"></span> <span>Searching...</span>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/bookings/ref/${encodeURIComponent(id)}`);
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error('Appointment not found. Please verify your Booking ID and try again.');
+        }
+
+        const b = json.data;
+        const start = new Date(b.startAt || b.start_at);
+        const time12 = format12Hour(start);
+        const dateStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `
+          <div style="background: rgba(0, 210, 196, 0.1); border: 1px solid var(--border-accent); border-radius: 8px; padding: 12px;">
+            <div style="font-weight: 800; color: var(--accent); margin-bottom: 4px;">Verified: ${b.bookingReference || b.id}</div>
+            <div style="font-size: 0.85rem;"><strong>${b.serviceName || 'Service'}</strong> with ${b.staffName || 'Specialist'}</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">📅 ${dateStr} at ${time12}</div>
+            <div style="margin-top: 8px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: ${b.status === 'confirmed' ? 'var(--accent)' : 'var(--text-muted)'};">Status: ${b.status || 'Confirmed'}</div>
+          </div>
+        `;
+      } catch (err) {
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `
+          <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; color: #fca5a5; font-size: 0.82rem;">
+            ${err.message}
+          </div>
+        `;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Find Appointment</span>`;
+      }
+    }
+
+    /**
+     * Helpers
+     */
+    function format12Hour(d) {
+      let h = d.getHours();
+      const m = d.getMinutes().toString().padStart(2, '0');
+      const period = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      h = h === 0 ? 12 : h;
+      return `${h}:${m} ${period}`;
+    }
+
+    function timeStringToMinutes(tStr) {
+      if (!tStr) return 0;
+      const parts = tStr.split(':');
+      return parseInt(parts[0], 10) * 60 + parseInt(parts[1] || '0', 10);
+    }
+
+    function isSameDay(d1, d2) {
+      return d1.getFullYear() === d2.getFullYear() &&
+             d1.getMonth() === d2.getMonth() &&
+             d1.getDate() === d2.getDate();
+    }
+
+    function getCurrencySymbol(curr) {
+      if (!curr) return '₹';
+      const c = curr.toUpperCase();
+      if (c === 'INR') return '₹';
+      if (c === 'USD') return '$';
+      if (c === 'EUR') return '€';
+      if (c === 'GBP') return '£';
+      if (c === 'AED') return 'AED ';
+      return `${c} `;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 3500);
+    }
+
+    /**
+     * Generates a lightweight QR Code SVG inside container
+     */
+    function generateQrSvg(text) {
+      const container = document.getElementById('qrCodeContainer');
+      // Using QuickChart QR service or fallback SVG
+      container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}&color=090d16" alt="QR Code" width="180" height="180" style="display:block;" onerror="this.outerHTML='<div style=\\'width:180px;height:180px;background:#e2e8f0;display:grid;place-items:center;color:#334155;font-size:12px;\\'>QR Code Ready</div>'" />`;
+    }
+
+    // Launch app on DOM ready
+    window.addEventListener('DOMContentLoaded', initBookingApp);
+  </script>
+</body>
+</html>

@@ -189,9 +189,12 @@ class BusinessService {
      */
     async getPublicBusinessBySlug(slug) {
         const cleanSlug = slug.trim().toLowerCase();
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug.trim());
 
         const business = await Business.findOne({
-            where: { slug: cleanSlug },
+            where: isUUID
+                ? { [Op.or]: [{ id: slug.trim() }, { slug: cleanSlug }] }
+                : { slug: cleanSlug },
             attributes: [
                 'id',
                 'name',

@@ -10,8 +10,27 @@ const startServer = async () => {
             console.log(`AppointmentPro API running on port ${env.port}`);
         });
 
+        // Also listen on port 8080 for web booking template requests
+        let webServer = null;
+        if (Number(env.port) !== 8080) {
+            try {
+                webServer = app.listen(8080, () => {
+                    console.log(`AppointmentPro Web Booking Template running on http://localhost:8080`);
+                });
+                webServer.on('error', (err) => {
+                    console.log(`Port 8080 notice: ${err.message}`);
+                });
+            } catch (portErr) {
+                console.log(`Port 8080 notice: ${portErr.message}`);
+            }
+        }
+
         const shutdown = (signal) => {
             console.log(`${signal} received. Closing server...`);
+
+            if (webServer) {
+                try { webServer.close(); } catch (e) {}
+            }
 
             server.close(async (error) => {
                 try {

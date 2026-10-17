@@ -116,6 +116,59 @@ class NotificationService {
             messageToShow: `Test notification sent to ${tokens.length} device(s).`,
         };
     }
+
+    /**
+     * Sends a push notification to business owner when an appointment is booked, rescheduled, or cancelled.
+     */
+    async sendBookingNotification(userId, { booking, business, type = 'booking_created' }) {
+        try {
+            const tokens = await this.getUserTokens(userId);
+            if (!tokens || !tokens.length) {
+                console.log(`ℹ️ [FCM] No active device tokens found for user ${userId}. Skipping push notification.`);
+                return null;
+            }
+
+            const raw = booking.toClientJSON ? booking.toClientJSON() : booking;
+            const refCode = raw.bookingReference || raw.booking_reference || raw.id;
+            const custName = raw.customerName || raw.customer_name || 'A customer';
+            const srvName = raw.serviceName || raw.service_name || 'Appointment';
+
+            let title = '📅 New Appointment Booked!';
+            if (type === 'booking_rescheduled') title = '🔄 Appointment Rescheduled';
+            if (type === 'booking_cancelled') title = '❌ Appointment Cancelled';
+
+            const dateStr = new Date(raw.startAt || raw.start_at).toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            });
+
+            const body = `${custName} booked ${srvName} on ${dateStr}. Ref: ${refCode}`;
+
+            const result = await sendMulticastNotification({
+                tokens,
+                title,
+                body,
+                data: {
+                    type,
+                    bookingId: String(refCode),
+                    businessId: String(raw.businessId || raw.business_id || ''),
+                    customerName: String(custName),
+                    serviceName: String(srvName),
+                    click_action: 'FLUTTER_NOTIFICATION_CLICK',
+                },
+            });
+
+            console.log(`✅ [FCM] Sent ${type} notification to user ${userId} on ${tokens.length} device(s)`);
+            return result;
+        } catch (err) {
+            console.error('⚠️ [FCM] Push notification error:', err.message);
+            return null;
+        }
+    }
 }
 
 module.exports = new NotificationService();

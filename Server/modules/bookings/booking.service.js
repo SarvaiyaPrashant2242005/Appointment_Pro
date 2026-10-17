@@ -112,8 +112,13 @@ class BookingService {
         let business;
 
         if (businessSlug) {
+            const cleanSlug = businessSlug.trim().toLowerCase();
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessSlug.trim());
+
             business = await Business.findOne({
-                where: { slug: businessSlug.trim().toLowerCase() },
+                where: isUUID
+                    ? { [Op.or]: [{ id: businessSlug.trim() }, { slug: cleanSlug }] }
+                    : { slug: cleanSlug },
             });
             if (!business) {
                 const error = new Error('Business not found.');
@@ -239,6 +244,20 @@ class BookingService {
                     { model: Payment, as: 'payments' },
                 ],
             });
+
+            // Dispatch push notification to business owner
+            if (business.owner_id) {
+                try {
+                    const notificationService = require('../notifications/notification.service');
+                    await notificationService.sendBookingNotification(business.owner_id, {
+                        booking: fullBooking,
+                        business,
+                        type: 'booking_created',
+                    });
+                } catch (notifErr) {
+                    console.warn('⚠️ Push notification dispatch warning:', notifErr.message);
+                }
+            }
 
             return {
                 booking: fullBooking.toClientJSON(),
@@ -443,6 +462,21 @@ class BookingService {
 
         await booking.update(updateData);
 
+        // Dispatch push notification to business owner
+        const ownerToNotify = booking.business?.owner_id || (await Business.findByPk(booking.business_id))?.owner_id;
+        if (ownerToNotify) {
+            try {
+                const notificationService = require('../notifications/notification.service');
+                await notificationService.sendBookingNotification(ownerToNotify, {
+                    booking,
+                    business: booking.business,
+                    type: status === 'cancelled' ? 'booking_cancelled' : 'booking_updated',
+                });
+            } catch (notifErr) {
+                console.warn('⚠️ Push notification dispatch warning:', notifErr.message);
+            }
+        }
+
         const statusLabels = {
             confirmed: 'Confirmed',
             completed: 'Marked as Completed',
@@ -530,6 +564,21 @@ class BookingService {
                     { model: Payment, as: 'payments' },
                 ],
             });
+
+            // Dispatch push notification to business owner
+            const ownerToNotify = booking.business?.owner_id || (await Business.findByPk(booking.business_id))?.owner_id;
+            if (ownerToNotify) {
+                try {
+                    const notificationService = require('../notifications/notification.service');
+                    await notificationService.sendBookingNotification(ownerToNotify, {
+                        booking: updatedBooking,
+                        business: booking.business,
+                        type: 'booking_rescheduled',
+                    });
+                } catch (notifErr) {
+                    console.warn('⚠️ Push notification dispatch warning:', notifErr.message);
+                }
+            }
 
             return {
                 booking: updatedBooking.toClientJSON(),
