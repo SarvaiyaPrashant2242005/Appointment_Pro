@@ -30,6 +30,12 @@ const verifyEmailSchema = Joi.object({
         'string.empty': 'OTP is required',
         'string.length': 'OTP must be exactly 6 digits',
     }),
+    fcmToken: Joi.string().trim().allow('', null).optional(),
+    fcm_token: Joi.string().trim().allow('', null).optional(),
+    deviceType: Joi.string().trim().max(50).allow('', null).optional(),
+    device_type: Joi.string().trim().max(50).allow('', null).optional(),
+    deviceId: Joi.string().trim().max(100).allow('', null).optional(),
+    device_id: Joi.string().trim().max(100).allow('', null).optional(),
 });
 
 const resendOtpSchema = Joi.object({
@@ -47,6 +53,12 @@ const loginSchema = Joi.object({
     password: Joi.string().required().messages({
         'string.empty': 'Password is required',
     }),
+    fcmToken: Joi.string().trim().allow('', null).optional(),
+    fcm_token: Joi.string().trim().allow('', null).optional(),
+    deviceType: Joi.string().trim().max(50).allow('', null).optional(),
+    device_type: Joi.string().trim().max(50).allow('', null).optional(),
+    deviceId: Joi.string().trim().max(100).allow('', null).optional(),
+    device_id: Joi.string().trim().max(100).allow('', null).optional(),
 });
 
 const refreshTokenSchema = Joi.object({

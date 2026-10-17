@@ -7,6 +7,8 @@ import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/services/fcm_service.dart';
+import '../../../auth/data/repositories/auth_repository.dart';
 import '../../../auth/presentation/providers/register_provider.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 
@@ -18,8 +20,9 @@ class ProfileScreen extends ConsumerWidget {
     if (!confirmed) return;
 
     if (!context.mounted) return;
-    final storage = ref.read(localStorageServiceProvider);
-    await storage.logout();
+    final fcmToken = FcmService.instance.fcmToken;
+    await ref.read(authRepositoryProvider).logout(fcmToken);
+    ref.invalidate(businessProvider);
 
     if (!context.mounted) return;
     AppToast.info(context, 'Logged out successfully');

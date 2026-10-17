@@ -34,6 +34,10 @@ class FcmService {
   final _bookingTapController = StreamController<String>.broadcast();
   Stream<String> get onBookingTap => _bookingTapController.stream;
 
+  final _tokenController = StreamController<String>.broadcast();
+  Stream<String> get onTokenRefresh => _tokenController.stream;
+  void Function(String token)? onTokenRefreshCallback;
+
   String? get fcmToken => _fcmToken;
   bool get isInitialized => _initialized;
 
@@ -82,6 +86,12 @@ class FcmService {
       _messaging!.onTokenRefresh.listen((newToken) {
         _fcmToken = newToken;
         debugPrint('FCM Token refreshed: $newToken');
+        _tokenController.add(newToken);
+        try {
+          onTokenRefreshCallback?.call(newToken);
+        } catch (e) {
+          debugPrint('Error in onTokenRefreshCallback: $e');
+        }
       });
 
       // 6. Listen for incoming foreground messages
@@ -181,5 +191,6 @@ class FcmService {
   void dispose() {
     _messageController.close();
     _bookingTapController.close();
+    _tokenController.close();
   }
 }

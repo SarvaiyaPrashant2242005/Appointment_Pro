@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const authController = require('./auth.controller');
+const notificationController = require('../notifications/notification.controller');
+const { saveFcmTokenSchema, removeFcmTokenSchema } = require('../notifications/notification.validator');
 const authenticate = require('../../middlewares/auth.middleware');
 const validate = require('../../middlewares/validate.middleware');
 const { uploadAvatar } = require('../../middlewares/upload.middleware');
@@ -32,5 +34,7 @@ router.get('/me', authenticate, authController.getProfile);
 router.put('/profile', authenticate, uploadAvatar.single('avatar'), validate(updateProfileSchema), authController.updateProfile);
 router.put('/change-password', authenticate, validate(changePasswordSchema), authController.changePassword);
 router.post('/logout', authenticate, authController.logout);
+router.post('/fcm-token', authenticate, validate(saveFcmTokenSchema), notificationController.saveToken);
+router.delete('/fcm-token', authenticate, validate(removeFcmTokenSchema), notificationController.removeToken);
 
 module.exports = router;

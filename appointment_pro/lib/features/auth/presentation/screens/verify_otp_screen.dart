@@ -10,6 +10,7 @@ import '../../../../core/errors/api_exception.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../providers/otp_provider.dart';
 
 class VerifyOtpScreen extends ConsumerStatefulWidget {
@@ -98,6 +99,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
       await ref.read(otpProvider.notifier).verifyOtp(
             email: widget.email,
             otp: otp,
+            fcmToken: FcmService.instance.fcmToken,
           );
 
       if (!mounted) return;
@@ -106,6 +108,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
           'Email verified successfully! Welcome to AppointmentPro.';
       AppToast.success(context, successMessage);
 
+      ref.invalidate(businessProvider);
       // Check whether user has existing businesses or needs setup
       final businesses =
           await ref.read(businessRepositoryProvider).getBusinesses();

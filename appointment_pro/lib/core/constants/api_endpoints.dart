@@ -4,9 +4,6 @@ import 'package:flutter/foundation.dart';
 class ApiEndpoints {
   ApiEndpoints._();
 
-  /// Configurable base URL. Defaults dynamically based on platform:
-  /// - Android Emulator: http://10.0.2.2:5000/api/v1
-  /// - iOS Simulator / Desktop / Web: http://localhost:5000/api/v1
   static String? _customBaseUrl;
 
   static void setCustomBaseUrl(String url) {
@@ -39,8 +36,20 @@ class ApiEndpoints {
   static const String changePassword = '/auth/change-password';
   static const String logout = '/auth/logout';
 
+  static String get baseOrigin {
+    try {
+      final uri = Uri.parse(baseUrl);
+      return uri.origin;
+    } catch (_) {
+      return baseUrl.replaceAll('/api/v1', '');
+    }
+  }
+
   // Businesses endpoints
   static const String businesses = '/businesses';
+  static String businessById(String id) => '/businesses/$id';
+  static String businessActivate(String id) => '/businesses/$id/activate';
+  static String businessPublic(String slug) => '/businesses/public/$slug';
 
   // Services endpoints
   static const String services = '/services';
@@ -59,4 +68,9 @@ class ApiEndpoints {
 
   // Payments endpoints
   static const String payments = '/payments';
+
+  // Notifications & FCM endpoints
+  static const String notifications = '/notifications';
+  static const String fcmToken = '/notifications/fcm-token';
+  static const String sendTestNotification = '/notifications/send-test';
 }

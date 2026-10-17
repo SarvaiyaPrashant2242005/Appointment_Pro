@@ -5,6 +5,7 @@ const { User, UserOtp, UserSession } = require('../users');
 const { generateOtp, getOtpExpiry } = require('../../utils/otp');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../utils/jwt');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../../utils/mailer');
+const notificationService = require('../notifications/notification.service');
 const env = require('../../config/env');
 
 class AuthService {
@@ -89,7 +90,8 @@ class AuthService {
     /**
      * Verifies user email address via 6-digit OTP
      */
-    async verifyEmail({ email, otp }) {
+    async verifyEmail(data) {
+        const { email, otp } = data;
         const normalizedEmail = email.trim().toLowerCase();
         const user = await User.findOne({ where: { email: normalizedEmail } });
 
@@ -147,6 +149,20 @@ class AuthService {
             refresh_token: refreshToken,
         });
 
+        // Store FCM token if provided during verification
+        const fcmToken = data.fcmToken || data.fcm_token;
+        if (fcmToken && fcmToken.trim() !== '') {
+            try {
+                await notificationService.saveFcmToken(user.id, {
+                    fcmToken: fcmToken.trim(),
+                    deviceType: data.deviceType || data.device_type || 'android',
+                    deviceId: data.deviceId || data.device_id || null,
+                });
+            } catch (err) {
+                console.error('Failed to save FCM token during email verification:', err.message);
+            }
+        }
+
         return {
             user: user.toSafeJSON(),
             accessToken,
@@ -200,7 +216,8 @@ class AuthService {
     /**
      * Authenticates user with email and password
      */
-    async login({ email, password }) {
+    async login(data) {
+        const { email, password } = data;
         const normalizedEmail = email.trim().toLowerCase();
         const user = await User.findOne({ where: { email: normalizedEmail } });
 
@@ -262,6 +279,20 @@ class AuthService {
             user_id: user.id,
             refresh_token: refreshToken,
         });
+
+        // Store FCM token if provided during login
+        const fcmToken = data.fcmToken || data.fcm_token;
+        if (fcmToken && fcmToken.trim() !== '') {
+            try {
+                await notificationService.saveFcmToken(user.id, {
+                    fcmToken: fcmToken.trim(),
+                    deviceType: data.deviceType || data.device_type || 'android',
+                    deviceId: data.deviceId || data.device_id || null,
+                });
+            } catch (err) {
+                console.error('Failed to save FCM token during login:', err.message);
+            }
+        }
 
         return {
             user: user.toSafeJSON(),

@@ -27,12 +27,14 @@ class AuthRemoteDataSource {
   Future<AuthResponseModel> verifyEmail({
     required String email,
     required String otp,
+    String? fcmToken,
   }) async {
     final response = await _apiClient.post(
       ApiEndpoints.verifyEmail,
       data: {
         'email': email.trim().toLowerCase(),
         'otp': otp.trim(),
+        if (fcmToken != null && fcmToken.isNotEmpty) 'fcmToken': fcmToken,
       },
     );
     return AuthResponseModel.fromJson(response);
@@ -51,15 +53,35 @@ class AuthRemoteDataSource {
   Future<AuthResponseModel> login({
     required String email,
     required String password,
+    String? fcmToken,
   }) async {
     final response = await _apiClient.post(
       ApiEndpoints.login,
       data: {
         'email': email.trim().toLowerCase(),
         'password': password,
+        if (fcmToken != null && fcmToken.isNotEmpty) 'fcmToken': fcmToken,
       },
     );
     return AuthResponseModel.fromJson(response);
+  }
+
+  Future<void> saveFcmToken(String fcmToken) async {
+    try {
+      await _apiClient.post(
+        ApiEndpoints.fcmToken,
+        data: {'fcmToken': fcmToken, 'deviceType': 'android'},
+      );
+    } catch (_) {}
+  }
+
+  Future<void> removeFcmToken(String fcmToken) async {
+    try {
+      await _apiClient.delete(
+        ApiEndpoints.fcmToken,
+        data: {'fcmToken': fcmToken},
+      );
+    } catch (_) {}
   }
 
   Future<UserModel> getProfile() async {

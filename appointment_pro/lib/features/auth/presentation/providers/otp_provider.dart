@@ -88,6 +88,7 @@ class OtpController extends Notifier<OtpState> {
   Future<void> verifyOtp({
     required String email,
     required String otp,
+    String? fcmToken,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
@@ -96,6 +97,7 @@ class OtpController extends Notifier<OtpState> {
       final response = await authRepo.verifyEmail(
         email: email,
         otp: otp,
+        fcmToken: fcmToken,
       );
 
       state = state.copyWith(

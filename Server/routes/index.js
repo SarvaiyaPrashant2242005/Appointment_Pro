@@ -9,6 +9,7 @@ const availabilityRoutes = require('../modules/availability/availability.routes'
 const customerRoutes = require('../modules/customers/customer.routes');
 const bookingRoutes = require('../modules/bookings/booking.routes');
 const paymentRoutes = require('../modules/bookings/payment.routes');
+const notificationRoutes = require('../modules/notifications/notification.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -20,5 +21,6 @@ router.use('/operating-hours', availabilityRoutes); // Direct alias
 router.use('/customers', customerRoutes);
 router.use('/bookings', bookingRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/notifications', notificationRoutes);
 
 module.exports = router;

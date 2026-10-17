@@ -23,12 +23,20 @@ class LoginController extends Notifier<LoginState> {
   @override
   LoginState build() => const LoginState();
 
-  Future<String> login({required String email, required String password}) async {
+  Future<String> login({
+    required String email,
+    required String password,
+    String? fcmToken,
+  }) async {
     state = const LoginState(isLoading: true);
 
     try {
       final authRepo = ref.read(authRepositoryProvider);
-      final response = await authRepo.login(email: email, password: password);
+      final response = await authRepo.login(
+        email: email,
+        password: password,
+        fcmToken: fcmToken,
+      );
       final messageToShow = response.messageToShow;
       state = LoginState(successMessage: messageToShow);
       return messageToShow;

@@ -7,6 +7,7 @@ import 'package:appointment_pro/features/bookings/data/repositories/booking_repo
 import 'package:appointment_pro/features/bookings/presentation/screens/public_booking_manage_screen.dart';
 import 'package:appointment_pro/features/bussiness_setup/data/models/business_model.dart';
 import 'package:appointment_pro/features/bussiness_setup/data/repositories/business_repository.dart';
+import 'package:appointment_pro/features/bussiness_setup/presentation/providers/business_provider.dart';
 import 'package:appointment_pro/features/services/data/models/service_model.dart';
 import 'package:appointment_pro/features/services/data/repositories/service_repository.dart';
 import 'package:appointment_pro/features/staff/data/models/staff_model.dart';
@@ -20,6 +21,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late LocalStorageService storage;
+  late FakeBusinessRepository fakeBizRepo;
   late BusinessModel testBusiness;
   late ServiceModel testService;
   late StaffModel testStaff;
@@ -70,8 +72,8 @@ void main() {
     );
 
     // Seed storage
-    final bizRepo = BusinessRepository(storage);
-    await bizRepo.createBusiness(testBusiness);
+    fakeBizRepo = FakeBusinessRepository();
+    await fakeBizRepo.createBusiness(testBusiness);
 
     final srvRepo = ServiceRepository(storage);
     await srvRepo.createService(testService);
@@ -90,7 +92,10 @@ void main() {
 
   Widget buildTestWidget({String? prefilledId}) {
     return ProviderScope(
-      overrides: [localStorageServiceProvider.overrideWithValue(storage)],
+      overrides: [
+        localStorageServiceProvider.overrideWithValue(storage),
+        businessRepositoryProvider.overrideWithValue(fakeBizRepo),
+      ],
       child: MaterialApp(
         home: PublicBookingManageScreen(
           businessSlug: 'aura-wellness',
@@ -217,8 +222,7 @@ void main() {
       type: 'Medical',
       createdAt: DateTime(2026, 1, 1),
     );
-    final otherBizRepo = BusinessRepository(storage);
-    await otherBizRepo.createBusiness(otherBusiness);
+    await fakeBizRepo.createBusiness(otherBusiness);
 
     final otherBooking = BookingModel(
       id: 'bk_other_999',
@@ -252,3 +256,50 @@ void main() {
     expect(find.text('Foreign Customer'), findsNothing);
   });
 }
+
+class FakeBusinessRepository implements BusinessRepository {
+  final List<BusinessModel> _businesses = [];
+
+  @override
+  Future<List<BusinessModel>> getBusinesses() async =>
+      List.unmodifiable(_businesses);
+
+  @override
+  Future<BusinessModel> getBusinessById(String id) async {
+    return _businesses.firstWhere((b) => b.id == id);
+  }
+
+  @override
+  Future<BusinessModel> getPublicBusinessBySlug(String slug) async {
+    return _businesses.firstWhere((b) => b.slug == slug || b.id == slug);
+  }
+
+  @override
+  Future<List<BusinessModel>> createBusiness(BusinessModel business) async {
+    _businesses.add(business);
+    return getBusinesses();
+  }
+
+  @override
+  Future<List<BusinessModel>> updateBusiness(BusinessModel business) async {
+    final idx = _businesses.indexWhere((b) => b.id == business.id);
+    if (idx != -1) _businesses[idx] = business;
+    return getBusinesses();
+  }
+
+  @override
+  Future<List<BusinessModel>> setActiveBusiness(String id) async {
+    for (int i = 0; i < _businesses.length; i++) {
+      _businesses[i] =
+          _businesses[i].copyWith(isActive: _businesses[i].id == id);
+    }
+    return getBusinesses();
+  }
+
+  @override
+  Future<List<BusinessModel>> deleteBusiness(String id) async {
+    _businesses.removeWhere((b) => b.id == id);
+    return getBusinesses();
+  }
+}
+

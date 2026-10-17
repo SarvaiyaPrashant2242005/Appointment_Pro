@@ -7,6 +7,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/errors/api_exception.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
@@ -42,12 +43,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .login(
             email: _emailController.text.trim(),
             password: _passwordController.text,
+            fcmToken: FcmService.instance.fcmToken,
           );
 
       if (!mounted) return;
 
       AppToast.success(context, successMessage);
 
+      ref.invalidate(businessProvider);
       final businesses = await ref
           .read(businessRepositoryProvider)
           .getBusinesses();

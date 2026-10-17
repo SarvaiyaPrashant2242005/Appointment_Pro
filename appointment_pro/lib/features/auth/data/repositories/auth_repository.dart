@@ -35,8 +35,13 @@ class AuthRepository {
   Future<AuthResponseModel> verifyEmail({
     required String email,
     required String otp,
+    String? fcmToken,
   }) async {
-    final response = await _remote.verifyEmail(email: email, otp: otp);
+    final response = await _remote.verifyEmail(
+      email: email,
+      otp: otp,
+      fcmToken: fcmToken,
+    );
 
     if (response.accessToken != null &&
         response.refreshToken != null &&
@@ -58,8 +63,13 @@ class AuthRepository {
   Future<AuthResponseModel> login({
     required String email,
     required String password,
+    String? fcmToken,
   }) async {
-    final response = await _remote.login(email: email, password: password);
+    final response = await _remote.login(
+      email: email,
+      password: password,
+      fcmToken: fcmToken,
+    );
 
     if (response.accessToken != null &&
         response.refreshToken != null &&
@@ -74,6 +84,14 @@ class AuthRepository {
     return response;
   }
 
+  Future<void> saveFcmToken(String fcmToken) async {
+    await _remote.saveFcmToken(fcmToken);
+  }
+
+  Future<void> removeFcmToken(String fcmToken) async {
+    await _remote.removeFcmToken(fcmToken);
+  }
+
   Future<UserModel?> getCurrentUser() async {
     final profileJson = await _storage.getUserProfile();
     if (profileJson == null || profileJson.isEmpty) return null;
@@ -85,7 +103,10 @@ class AuthRepository {
     }
   }
 
-  Future<void> logout() async {
+  Future<void> logout([String? fcmToken]) async {
+    if (fcmToken != null && fcmToken.isNotEmpty) {
+      await _remote.removeFcmToken(fcmToken);
+    }
     await _remote.logout();
     await _storage.clearAuth();
   }
