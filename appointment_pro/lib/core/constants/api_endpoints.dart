@@ -45,6 +45,16 @@ class ApiEndpoints {
     }
   }
 
+  static String get wsUrl {
+    final origin = baseOrigin;
+    if (origin.startsWith('https://')) {
+      return '${origin.replaceFirst('https://', 'wss://')}/ws';
+    } else if (origin.startsWith('http://')) {
+      return '${origin.replaceFirst('http://', 'ws://')}/ws';
+    }
+    return 'ws://192.168.1.5:5000/ws';
+  }
+
   // Businesses endpoints
   static const String businesses = '/businesses';
   static String businessById(String id) => '/businesses/$id';

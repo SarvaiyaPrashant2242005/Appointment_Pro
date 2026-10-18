@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/services/websocket_service.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../core/widgets/app_empty_view.dart';
@@ -153,6 +154,20 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep live WebSocket sync active
+    ref.watch(bookingWebSocketSyncProvider);
+
+    // Listen for live incoming booking notifications
+    ref.listen<LiveBookingAlert?>(latestLiveBookingAlertProvider, (previous, next) {
+      if (next != null && mounted) {
+        if (next.eventType == 'booking:cancelled') {
+          AppToast.warning(context, next.message);
+        } else {
+          AppToast.success(context, next.message);
+        }
+      }
+    });
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final activeBusiness = ref.watch(activeBusinessProvider);
@@ -160,6 +175,7 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
     final activeTab = ref.watch(bookingTabProvider);
     final statusFilter = ref.watch(bookingStatusFilterProvider);
     final filteredBookings = ref.watch(filteredBookingsProvider);
+    final wsStatus = ref.watch(webSocketStatusProvider).value ?? WebSocketStatus.disconnected;
 
     // Compute counts for tabs
     final allBookings = bookingsAsync.value ?? [];
@@ -186,7 +202,76 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Bookings'),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Bookings'),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                  decoration: BoxDecoration(
+                    color: wsStatus.isConnected
+                        ? AppColors.success.withValues(alpha: 0.15)
+                        : (wsStatus.isConnecting
+                            ? AppColors.warning.withValues(alpha: 0.15)
+                            : AppColors.textSecondary.withValues(alpha: 0.12)),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: wsStatus.isConnected
+                          ? AppColors.success.withValues(alpha: 0.4)
+                          : (wsStatus.isConnecting
+                              ? AppColors.warning.withValues(alpha: 0.4)
+                              : AppColors.border),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: wsStatus.isConnected
+                              ? AppColors.success
+                              : (wsStatus.isConnecting
+                                  ? AppColors.warning
+                                  : AppColors.textSecondary),
+                          boxShadow: wsStatus.isConnected
+                              ? [
+                                  BoxShadow(
+                                    color: AppColors.success
+                                        .withValues(alpha: 0.5),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        wsStatus.isConnected
+                            ? 'LIVE'
+                            : (wsStatus.isConnecting ? 'CONNECTING' : 'OFFLINE'),
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                          color: wsStatus.isConnected
+                              ? AppColors.success
+                              : (wsStatus.isConnecting
+                                  ? AppColors.warning
+                                  : AppColors.textSecondary),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             if (activeBusiness != null)
               Text(
                 activeBusiness.name,

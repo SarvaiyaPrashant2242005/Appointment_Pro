@@ -339,6 +339,69 @@
       }
     }
 
+    /* Live Sync WebSocket Status Indicators */
+    .header-live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 6px 11px;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.18);
+      user-select: none;
+      transition: all 0.25s ease;
+    }
+
+    .header-live-indicator .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+      animation: pulse-dot 1.8s infinite;
+    }
+
+    .header-live-indicator.connecting {
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
+      box-shadow: none;
+    }
+
+    .header-live-indicator.connecting .pulse-dot {
+      background: #f59e0b;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+    }
+
+    .tag-badge.status-live {
+      background: rgba(0, 210, 196, 0.12);
+      color: #2dd4bf;
+      border: 1px solid rgba(0, 210, 196, 0.28);
+    }
+
+    .tag-badge.status-live .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00d2c4;
+      animation: pulse-dot 1.8s infinite;
+    }
+
+    .tag-badge.status-live.connecting {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .tag-badge.status-live.connecting .live-dot {
+      background: #f59e0b;
+    }
+
     .qr-badge-btn {
       background: rgba(0, 210, 196, 0.1);
       border: 1px solid rgba(0, 210, 196, 0.3);
@@ -357,6 +420,110 @@
     .qr-badge-btn:hover {
       background: rgba(0, 210, 196, 0.18);
       transform: translateY(-1px);
+    }
+
+    /* Quick Lookup Strip on Main Screen */
+    .quick-lookup-strip {
+      max-width: 1100px;
+      margin: 0 auto 20px auto;
+      width: 100%;
+    }
+
+    .qls-inner {
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s ease;
+    }
+
+    .qls-inner:focus-within {
+      border-color: var(--border-accent);
+      box-shadow: 0 0 20px rgba(0, 210, 196, 0.12);
+    }
+
+    .qls-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .qls-label svg {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .qls-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      max-width: 460px;
+      min-width: 260px;
+    }
+
+    .qls-form input {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 14px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .qls-form input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .qls-form button {
+      background: var(--accent-gradient);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 9px 16px;
+      color: #090d16;
+      font-family: var(--font-main);
+      font-weight: 800;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .qls-form button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    @media (max-width: 640px) {
+      .qls-inner {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+        gap: 10px;
+      }
+      .qls-form {
+        max-width: 100%;
+        min-width: 100%;
+      }
     }
 
     /* Grid Layout */
@@ -873,6 +1040,31 @@
     .slot-badge {
       font-size: 0.68rem;
       opacity: 0.7;
+    }
+
+    .slot-btn.booked {
+      opacity: 0.42;
+      background: rgba(255, 255, 255, 0.02);
+      border-color: rgba(255, 255, 255, 0.05);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .slot-btn.booked span:first-child {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .slot-badge.booked {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      opacity: 1;
     }
 
     .no-slots-box {
@@ -1633,6 +1825,10 @@
           </svg>
           <span class="btn-text-full">QR Code</span>
         </button>
+        <div class="header-live-indicator" id="headerLiveBadge" title="Real-time live WebSocket connected">
+          <span class="pulse-dot"></span>
+          <span class="live-label">LIVE</span>
+        </div>
         <button class="btn-ghost" id="openManageBtn" title="Manage, Reschedule or Cancel Booking">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
             <path
@@ -1659,6 +1855,7 @@
               </svg></span></h2>
           <div class="biz-badges">
             <span class="tag-badge status-open" id="bizStatus">Open for Bookings</span>
+            <span class="tag-badge status-live" id="liveSyncBadge"><span class="live-dot"></span><span id="liveSyncText">Live Sync Active</span></span>
             <span class="tag-badge" id="bizType">Medical & OPD Clinic</span>
             <span class="tag-badge" id="bizLocation">🇮🇳 India</span>
           </div>
@@ -1671,6 +1868,25 @@
         </svg>
         QR Booking Link
       </button>
+    </section>
+
+    <!-- Quick Booking ID Search & Manage Strip -->
+    <section class="quick-lookup-strip">
+      <div class="qls-inner">
+        <div class="qls-label">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+          </svg>
+          <span>Already have an appointment?</span>
+        </div>
+        <form class="qls-form" onsubmit="handleQuickLookup(event)">
+          <input type="text" id="quickBookingIdInput" placeholder="Enter Booking ID (e.g. AP-180619)" autocomplete="off" />
+          <button type="submit" id="quickLookupBtn">
+            <span>Find & Manage</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42 5.43 5.43H5v2z"/></svg>
+          </button>
+        </form>
+      </div>
     </section>
 
     <!-- Interactive Booking Wizard -->
@@ -2043,26 +2259,26 @@
       <div id="manageLookupView">
         <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;">Manage Your Appointment</h3>
         <p style="color: var(--text-secondary); font-size: 0.84rem; margin-bottom: 20px;">
-          Enter your Booking Reference ID (e.g. AP-849201) and registered phone number to reschedule or cancel your appointment.
+          Enter your Booking Reference ID (e.g. AP-180619) to view details, reschedule to a new slot, or cancel your appointment.
         </p>
 
         <form id="lookupForm" onsubmit="handleLookupSubmit(event)">
           <div class="form-group">
             <label class="form-label" for="lookupId">Booking Reference ID *</label>
-            <input type="text" id="lookupId" class="form-input" placeholder="e.g. AP-849201" required
+            <input type="text" id="lookupId" class="form-input" placeholder="e.g. AP-180619 or UUID" required
               style="font-family: var(--font-mono); text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="lookupPhone">Customer Phone Number *</label>
-            <input type="tel" id="lookupPhone" class="form-input" placeholder="e.g. 9876543210" required />
-            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">Used for security verification matching your reservation.</span>
+            <label class="form-label" for="lookupPhone">Customer Phone Number <span style="color: var(--text-muted); font-weight: 400;">(Optional)</span></label>
+            <input type="tel" id="lookupPhone" class="form-input" placeholder="e.g. 9876543210 (Optional)" />
+            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">You can search directly with your Booking ID alone.</span>
           </div>
 
           <div id="lookupErrorBox" style="display: none; margin-bottom: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; color: #fca5a5; font-size: 0.82rem;"></div>
 
           <button type="submit" class="btn-primary" id="lookupSubmitBtn">
-            <span>Find Appointment</span>
+            <span>Find Appointment & Details</span>
           </button>
         </form>
       </div>
@@ -2072,7 +2288,13 @@
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap;">
           <div>
             <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Appointment Reference</span>
-            <div style="font-family: var(--font-mono); font-size: 1.35rem; font-weight: 800; color: var(--accent);" id="manageRefCode">AP-000000</div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+              <div style="font-family: var(--font-mono); font-size: 1.35rem; font-weight: 800; color: var(--accent);" id="manageRefCode">AP-000000</div>
+              <button type="button" class="btn-ghost" style="padding: 4px 8px; font-size: 0.72rem;" onclick="copyManageRefCode()" title="Copy Booking Reference">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                <span>Copy</span>
+              </button>
+            </div>
           </div>
           <div id="manageStatusBadge">
             <span class="status-pill status-confirmed">Confirmed</span>
@@ -2288,6 +2510,7 @@
       selectedStaff: null, // null means "Any Available Specialist"
       selectedDate: new Date(),
       selectedSlot: null,
+      bookedSlots: [],
       currentStep: 1,
       confirmedBooking: null,
     };
@@ -2382,8 +2605,14 @@
         const availJson = await availRes.json();
         bookingState.availability = availJson.data;
 
+        // 5. Fetch booked slots for current date
+        await fetchBookedSlotsForDate(bookingState.selectedDate);
+
         // Render Date Carousel
         renderDateCarousel();
+
+        // 6. Connect live WebSocket for real-time slot sync
+        initLiveWebSocket();
 
         // Auto select first service if only 1 service exists
         if (bookingState.services.length === 1) {
@@ -2616,7 +2845,7 @@
       generateTimeSlots();
     }
 
-    function selectDate(isoDateStr) {
+    async function selectDate(isoDateStr) {
       bookingState.selectedDate = new Date(isoDateStr);
       bookingState.selectedSlot = null;
 
@@ -2624,8 +2853,192 @@
       const activePill = document.getElementById(`date-pill-${isoDateStr.slice(0, 10)}`);
       if (activePill) activePill.classList.add('selected');
 
+      await fetchBookedSlotsForDate(bookingState.selectedDate);
       generateTimeSlots();
       updateSummary();
+    }
+
+    /**
+     * Fetch occupied slots from backend to prevent double-booking
+     */
+    async function fetchBookedSlotsForDate(date) {
+      if (!bookingState.business || !bookingState.business.id) return [];
+      try {
+        const dateStr = date ? date.toISOString().slice(0, 10) : '';
+        const res = await fetch(`${API_BASE}/bookings/public-slots/${encodeURIComponent(bookingState.business.id)}?date=${dateStr}`);
+        const json = await res.json();
+        if (json.success && json.data && Array.isArray(json.data.bookedSlots)) {
+          bookingState.bookedSlots = json.data.bookedSlots;
+        } else {
+          bookingState.bookedSlots = [];
+        }
+      } catch (err) {
+        console.warn('[AppointmentPro] Error fetching booked slots:', err);
+        bookingState.bookedSlots = [];
+      }
+      return bookingState.bookedSlots;
+    }
+
+    /**
+     * Real-time WebSocket live connection & event subscription
+     */
+    let liveSocket = null;
+    let wsHeartbeatTimer = null;
+    let wsReconnectTimeout = null;
+
+    function initLiveWebSocket() {
+      if (!bookingState.business || !bookingState.business.id) return;
+      if (liveSocket && (liveSocket.readyState === WebSocket.OPEN || liveSocket.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      let wsHost = window.location.host;
+      if (!wsHost || wsHost.startsWith('file:') || wsHost === '') {
+        wsHost = 'localhost:5000';
+      }
+      const wsUrl = `${protocol}//${wsHost}/ws`;
+
+      console.log(`[AppointmentPro WS] Connecting to ${wsUrl}...`);
+      updateLiveBadgeState('connecting');
+
+      try {
+        liveSocket = new WebSocket(wsUrl);
+
+        liveSocket.onopen = () => {
+          console.log('[AppointmentPro WS] Connected successfully.');
+          updateLiveBadgeState('connected');
+
+          // Join business room for live booking events
+          liveSocket.send(JSON.stringify({
+            type: 'join_business',
+            businessId: bookingState.business.id,
+          }));
+
+          // Heartbeat ping every 25 seconds
+          if (wsHeartbeatTimer) clearInterval(wsHeartbeatTimer);
+          wsHeartbeatTimer = setInterval(() => {
+            if (liveSocket && liveSocket.readyState === WebSocket.OPEN) {
+              liveSocket.send(JSON.stringify({ type: 'ping' }));
+            }
+          }, 25000);
+        };
+
+        liveSocket.onmessage = async (evt) => {
+          try {
+            const data = JSON.parse(evt.data);
+            await handleLiveWebSocketMessage(data);
+          } catch (e) {
+            console.warn('[AppointmentPro WS] Parse error:', e);
+          }
+        };
+
+        liveSocket.onclose = () => {
+          console.log('[AppointmentPro WS] Disconnected. Reconnecting in 4s...');
+          updateLiveBadgeState('disconnected');
+          if (wsHeartbeatTimer) clearInterval(wsHeartbeatTimer);
+          clearTimeout(wsReconnectTimeout);
+          wsReconnectTimeout = setTimeout(initLiveWebSocket, 4000);
+        };
+
+        liveSocket.onerror = (err) => {
+          console.warn('[AppointmentPro WS] Socket error:', err);
+          updateLiveBadgeState('disconnected');
+        };
+      } catch (err) {
+        console.warn('[AppointmentPro WS] Connection failed:', err);
+        updateLiveBadgeState('disconnected');
+        clearTimeout(wsReconnectTimeout);
+        wsReconnectTimeout = setTimeout(initLiveWebSocket, 5000);
+      }
+    }
+
+    function updateLiveBadgeState(status) {
+      const headerBadge = document.getElementById('headerLiveBadge');
+      const bizBadge = document.getElementById('liveSyncBadge');
+      const bizText = document.getElementById('liveSyncText');
+
+      if (status === 'connected') {
+        if (headerBadge) {
+          headerBadge.classList.remove('connecting');
+          headerBadge.style.display = 'inline-flex';
+        }
+        if (bizBadge) {
+          bizBadge.classList.remove('connecting');
+          bizBadge.style.display = 'inline-flex';
+        }
+        if (bizText) bizText.textContent = 'Live Sync Active';
+      } else if (status === 'connecting') {
+        if (headerBadge) {
+          headerBadge.classList.add('connecting');
+          headerBadge.style.display = 'inline-flex';
+        }
+        if (bizBadge) {
+          bizBadge.classList.add('connecting');
+          bizBadge.style.display = 'inline-flex';
+        }
+        if (bizText) bizText.textContent = 'Connecting Live...';
+      } else {
+        if (headerBadge) headerBadge.classList.add('connecting');
+        if (bizBadge) bizBadge.classList.add('connecting');
+        if (bizText) bizText.textContent = 'Reconnecting...';
+      }
+    }
+
+    async function handleLiveWebSocketMessage(payload) {
+      if (!payload || !payload.event) return;
+      console.log(`[AppointmentPro WS] Live Event: ${payload.event}`, payload);
+
+      switch (payload.event) {
+        case 'business:joined':
+          console.log(`[AppointmentPro WS] Subscribed to business room: ${payload.businessId}`);
+          break;
+
+        case 'booking:created':
+          showToast('⚡ Real-time update: A new appointment was just booked!', 'info');
+          await refreshSlotsOnLiveEvent();
+          break;
+
+        case 'booking:rescheduled':
+          showToast('⚡ Real-time update: An appointment was rescheduled.', 'info');
+          await refreshSlotsOnLiveEvent();
+          break;
+
+        case 'booking:cancelled':
+          showToast('⚡ Slot freed: An appointment was cancelled. Slots updated!', 'info');
+          await refreshSlotsOnLiveEvent();
+          break;
+
+        case 'booking:deleted':
+          await refreshSlotsOnLiveEvent();
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    async function refreshSlotsOnLiveEvent() {
+      await fetchBookedSlotsForDate(bookingState.selectedDate);
+      generateTimeSlots();
+
+      // Check if user currently selected slot was taken
+      if (bookingState.selectedSlot) {
+        const isConflict = (bookingState.bookedSlots || []).some(b => {
+          const bStart = new Date(b.startAt).getTime();
+          const bEnd = new Date(b.endAt).getTime();
+          const selStart = bookingState.selectedSlot.startAt.getTime();
+          const selEnd = bookingState.selectedSlot.endAt.getTime();
+          return selStart < bEnd && selEnd > bStart;
+        });
+
+        if (isConflict) {
+          bookingState.selectedSlot = null;
+          showToast('⚠️ The time slot you had chosen was just reserved by another customer. Please select another time.', 'error');
+          generateTimeSlots();
+          updateSummary();
+        }
+      }
     }
 
     /**
@@ -2647,7 +3060,6 @@
       let closeMinutes = 18 * 60; // 18:00
 
       if (bookingState.availability && Array.isArray(bookingState.availability.operatingHours)) {
-        // dayOfWeek 1=Monday...7=Sunday in ISO, in JS 0=Sunday
         const jsDay = date.getDay();
         const isoDay = jsDay === 0 ? 7 : jsDay;
         const dayRecord = bookingState.availability.operatingHours.find(h => h.dayOfWeek === isoDay || h.day_of_week === isoDay);
@@ -2669,6 +3081,23 @@
         const startDt = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(m / 60), m % 60);
         const endDt = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor((m + durationMinutes) / 60), (m + durationMinutes) % 60);
 
+        // Check if slot overlaps with any occupied booking
+        const isBooked = (bookingState.bookedSlots || []).some(b => {
+          const bStart = new Date(b.startAt).getTime();
+          const bEnd = new Date(b.endAt).getTime();
+          const slotStart = startDt.getTime();
+          const slotEnd = endDt.getTime();
+
+          const overlaps = slotStart < bEnd && slotEnd > bStart;
+          if (!overlaps) return false;
+
+          // If a specialist is selected, only consider booked if it matches that specialist
+          if (bookingState.selectedStaff && b.staffId) {
+            return b.staffId === bookingState.selectedStaff.id;
+          }
+          return true;
+        });
+
         // Format in 12-Hour format (AM/PM)
         const start12 = format12Hour(startDt);
         const end12 = format12Hour(endDt);
@@ -2685,6 +3114,7 @@
           label: range12,
           start12,
           period,
+          isBooked,
         });
       }
 
@@ -2727,6 +3157,15 @@
     }
 
     function renderSlotButton(slot) {
+      if (slot.isBooked) {
+        return `
+          <button class="slot-btn booked" disabled title="This slot is already reserved">
+            <span>${slot.label}</span>
+            <span class="slot-badge booked">Booked</span>
+          </button>
+        `;
+      }
+
       const isSelected = bookingState.selectedSlot && bookingState.selectedSlot.startAt.getTime() === slot.startAt.getTime();
       return `
         <button class="slot-btn ${isSelected ? 'selected' : ''}" 
@@ -2745,7 +3184,7 @@
       };
 
       document.querySelectorAll('.slot-btn').forEach(btn => {
-        if (btn.querySelector('span').textContent === label) {
+        if (btn.querySelector('span') && btn.querySelector('span').textContent === label) {
           btn.classList.add('selected');
         } else {
           btn.classList.remove('selected');
@@ -3118,12 +3557,37 @@
 
       openModal('manageModal');
 
-      // Auto search if both ID and phone are present (e.g. from confirmation screen)
-      if (prefillId && prefillPhone) {
+      // Auto search if prefillId is given
+      if (prefillId) {
         setTimeout(() => {
-          const form = document.getElementById('lookupForm');
-          if (form) form.dispatchEvent(new Event('submit', { cancelable: true }));
-        }, 120);
+          handleLookupSubmit();
+        }, 100);
+      }
+    }
+
+    function quickLookupBooking() {
+      const input = document.getElementById('quickBookingIdInput');
+      const id = input ? input.value.trim() : '';
+      if (!id) {
+        showToast('Please enter your Booking Reference ID (e.g. AP-180619)', 'info');
+        if (input) input.focus();
+        return;
+      }
+      openManageModal(id);
+    }
+
+    function handleQuickLookup(e) {
+      if (e) e.preventDefault();
+      quickLookupBooking();
+    }
+
+    function copyManageRefCode() {
+      const el = document.getElementById('manageRefCode');
+      const code = el ? el.textContent.trim() : '';
+      if (code) {
+        navigator.clipboard.writeText(code).then(() => {
+          showToast(`Copied ${code} to clipboard!`, 'success');
+        });
       }
     }
 
@@ -3142,16 +3606,26 @@
      */
     async function handleLookupSubmit(e) {
       if (e) e.preventDefault();
-      const id = document.getElementById('lookupId').value.trim();
-      const phone = document.getElementById('lookupPhone').value.trim();
+      const idInput = document.getElementById('lookupId');
+      const id = idInput ? idInput.value.trim() : '';
+      const phoneInput = document.getElementById('lookupPhone');
+      const phone = phoneInput ? phoneInput.value.trim() : '';
       const errorBox = document.getElementById('lookupErrorBox');
       const submitBtn = document.getElementById('lookupSubmitBtn');
 
-      if (!id || !phone) return;
+      if (!id) {
+        if (errorBox) {
+          errorBox.style.display = 'block';
+          errorBox.textContent = 'Please enter your Booking Reference ID (e.g. AP-180619).';
+        }
+        return;
+      }
 
-      errorBox.style.display = 'none';
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `<span class="spinner"></span> <span>Verifying Reservation...</span>`;
+      if (errorBox) errorBox.style.display = 'none';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span class="spinner"></span> <span>Searching Appointment...</span>`;
+      }
 
       try {
         const res = await fetch(`${API_BASE}/bookings/ref/${encodeURIComponent(id)}`);
@@ -3162,23 +3636,25 @@
 
         const b = json.data;
 
-        // Verify customer phone number match (compare clean digits)
-        const cleanEnteredPhone = phone.replace(/\D/g, '');
-        const cleanBookingPhone = String(b.customerPhone || '').replace(/\D/g, '');
+        // If phone number was entered, verify it matches
+        if (phone) {
+          const cleanEnteredPhone = phone.replace(/\D/g, '');
+          const cleanBookingPhone = String(b.customerPhone || b.customer_phone || '').replace(/\D/g, '');
 
-        const phoneMatches = cleanEnteredPhone && cleanBookingPhone &&
-          (cleanEnteredPhone === cleanBookingPhone ||
-           cleanEnteredPhone.endsWith(cleanBookingPhone) ||
-           cleanBookingPhone.endsWith(cleanEnteredPhone));
+          const phoneMatches = cleanEnteredPhone && cleanBookingPhone &&
+            (cleanEnteredPhone === cleanBookingPhone ||
+             cleanEnteredPhone.endsWith(cleanBookingPhone) ||
+             cleanBookingPhone.endsWith(cleanEnteredPhone));
 
-        if (!phoneMatches) {
-          throw new Error('The phone number entered does not match the customer phone registered for this booking. Please verify the phone number.');
+          if (!phoneMatches) {
+            throw new Error('The phone number entered does not match this reservation. Please check the number or clear it to search by Booking ID alone.');
+          }
         }
 
         manageState.booking = b;
 
         // Ensure business availability, services & staff are loaded for this booking's business
-        const bizId = b.businessId || (b.business && b.business.id);
+        const bizId = b.businessId || b.business_id || (b.business && b.business.id);
         if (bizId) {
           if (bookingState.business && bookingState.business.id === bizId) {
             manageState.business = bookingState.business;
@@ -3201,11 +3677,15 @@
         renderManageDetails();
         showManageView('details');
       } catch (err) {
-        errorBox.style.display = 'block';
-        errorBox.textContent = err.message;
+        if (errorBox) {
+          errorBox.style.display = 'block';
+          errorBox.textContent = err.message;
+        }
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = `<span>Find Appointment</span>`;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<span>Find Appointment & Details</span>`;
+        }
       }
     }
 
@@ -3533,7 +4013,8 @@
           reason,
         };
 
-        const res = await fetch(`${API_BASE}/bookings/public-reschedule/${encodeURIComponent(b.id)}`, {
+        const targetId = b.rawId || b.id || b.bookingReference || b.bookingId;
+        const res = await fetch(`${API_BASE}/bookings/public-reschedule/${encodeURIComponent(targetId)}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -3603,7 +4084,8 @@
       const fullReason = customNote ? `${preset} - ${customNote}` : (preset || 'Cancelled by customer via online portal');
 
       try {
-        const res = await fetch(`${API_BASE}/bookings/public-cancel/${encodeURIComponent(b.id)}`, {
+        const targetId = b.rawId || b.id || b.bookingReference || b.bookingId;
+        const res = await fetch(`${API_BASE}/bookings/public-cancel/${encodeURIComponent(targetId)}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cancellationReason: fullReason }),

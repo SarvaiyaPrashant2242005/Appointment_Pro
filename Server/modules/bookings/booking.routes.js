@@ -45,6 +45,12 @@ router.patch(
     bookingController.cancelPublic
 );
 
+// 5. Public booked slots for a business and date (for live availability calendar)
+router.get(
+    '/public-slots/:businessId',
+    bookingController.getPublicBookedSlots
+);
+
 // All subsequent routes require user authentication
 router.use(authenticate);
 

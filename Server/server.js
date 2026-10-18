@@ -15,6 +15,10 @@ const startServer = async () => {
             console.log(`  Network: http://${localIp}:${env.port} (Scan QR from mobile device)`);
         });
 
+        // Initialize Live WebSocket Server on primary port (e.g. 5000 /ws)
+        const websocketService = require('./modules/websocket/websocket.service');
+        const wss = websocketService.init(server, '/ws');
+
         // Also listen on port 8080 for web booking template requests
         let webServer = null;
         if (Number(env.port) !== 8080) {
@@ -26,6 +30,15 @@ const startServer = async () => {
                 });
                 webServer.on('error', (err) => {
                     console.log(`Port 8080 notice: ${err.message}`);
+                });
+
+                // Forward WebSocket upgrade requests on port 8080/ws to the same WebSocket service
+                webServer.on('upgrade', (request, socket, head) => {
+                    if (request.url && request.url.startsWith('/ws')) {
+                        wss.handleUpgrade(request, socket, head, (ws) => {
+                            wss.emit('connection', ws, request);
+                        });
+                    }
                 });
             } catch (portErr) {
                 console.log(`Port 8080 notice: ${portErr.message}`);

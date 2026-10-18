@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import '../../../../core/services/api_client.dart';
 import '../../../../core/services/local_storage_service.dart';
+import '../../../../core/services/websocket_service.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../../../services/presentation/providers/service_provider.dart';
 import '../../../staff/presentation/providers/staff_provider.dart';
@@ -53,8 +56,8 @@ class BookingsController extends AsyncNotifier<List<BookingModel>> {
       return bookings.map((b) {
         final resolvedService =
             (b.serviceName != null && b.serviceName!.isNotEmpty)
-                ? b.serviceName
-                : serviceMap[b.serviceId];
+            ? b.serviceName
+            : serviceMap[b.serviceId];
         final resolvedStaff = (b.staffName != null && b.staffName!.isNotEmpty)
             ? b.staffName
             : (b.staffId != null ? staffMap[b.staffId] : null);
@@ -191,6 +194,121 @@ class BookingsController extends AsyncNotifier<List<BookingModel>> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _repository.getBookings(businessId));
   }
+
+  /// Real-time live WebSocket handler: new booking created
+  Future<void> onLiveBookingCreated(BookingModel booking) async {
+    final businessId = ref.read(activeBusinessIdProvider);
+    if (businessId != null &&
+        booking.businessId.isNotEmpty &&
+        booking.businessId != businessId) {
+      return;
+    }
+
+    final previous = state.asData?.value ?? [];
+
+    // Resolve service name and staff name if missing
+    String? resolvedService = booking.serviceName;
+    String? resolvedStaff = booking.staffName;
+
+    try {
+      if (resolvedService == null || resolvedService.isEmpty) {
+        final serviceRepo = ref.read(serviceRepositoryProvider);
+        final services = await serviceRepo.getServices(
+          businessId ?? booking.businessId,
+        );
+        resolvedService = services
+            .where((s) => s.id == booking.serviceId)
+            .firstOrNull
+            ?.name;
+      }
+      if (resolvedStaff == null || resolvedStaff.isEmpty) {
+        if (booking.staffId != null) {
+          final staffRepo = ref.read(staffRepositoryProvider);
+          final staffList = await staffRepo.getStaff(
+            businessId ?? booking.businessId,
+          );
+          resolvedStaff = staffList
+              .where((st) => st.id == booking.staffId)
+              .firstOrNull
+              ?.name;
+        }
+      }
+    } catch (_) {}
+
+    final enrichedBooking = booking.copyWith(
+      serviceName: resolvedService,
+      staffName: resolvedStaff,
+    );
+
+    // If already exists, replace it, else add it
+    final existsIndex = previous.indexWhere(
+      (b) =>
+          b.id == enrichedBooking.id ||
+          (enrichedBooking.bookingReference != null &&
+              b.bookingReference == enrichedBooking.bookingReference),
+    );
+
+    final List<BookingModel> updatedList;
+    if (existsIndex >= 0) {
+      updatedList = List.of(previous)..[existsIndex] = enrichedBooking;
+    } else {
+      updatedList = [...previous, enrichedBooking];
+    }
+
+    updatedList.sort((a, b) => a.startAt.compareTo(b.startAt));
+    state = AsyncData(updatedList);
+  }
+
+  /// Real-time live WebSocket handler: booking updated or rescheduled
+  void onLiveBookingUpdated(BookingModel booking) {
+    final previous = state.asData?.value ?? [];
+    final existsIndex = previous.indexWhere(
+      (b) =>
+          b.id == booking.id ||
+          (booking.bookingReference != null &&
+              b.bookingReference == booking.bookingReference),
+    );
+
+    if (existsIndex >= 0) {
+      final old = previous[existsIndex];
+      final updated = booking.copyWith(
+        serviceName: booking.serviceName ?? old.serviceName,
+        staffName: booking.staffName ?? old.staffName,
+      );
+      final updatedList = List.of(previous)..[existsIndex] = updated;
+      updatedList.sort((a, b) => a.startAt.compareTo(b.startAt));
+      state = AsyncData(updatedList);
+    } else {
+      final updatedList = [...previous, booking]
+        ..sort((a, b) => a.startAt.compareTo(b.startAt));
+      state = AsyncData(updatedList);
+    }
+  }
+
+  /// Real-time live WebSocket handler: booking cancelled
+  void onLiveBookingCancelled(String bookingId, {String? reason}) {
+    final previous = state.asData?.value ?? [];
+    final updatedList = previous.map((b) {
+      if (b.id == bookingId || b.bookingReference == bookingId) {
+        return b.copyWith(
+          status: BookingStatus.cancelled,
+          cancellationReason: reason ?? b.cancellationReason,
+          cancelledAt: DateTime.now(),
+        );
+      }
+      return b;
+    }).toList();
+    state = AsyncData(updatedList);
+  }
+
+  /// Real-time live WebSocket handler: booking deleted
+  void onLiveBookingDeleted(String bookingId) {
+    final previous = state.asData?.value ?? [];
+    final updatedList = previous
+        .where((b) => b.id != bookingId && b.bookingReference != bookingId)
+        .toList();
+    state = AsyncData(updatedList);
+  }
 }
 
 /// Filter tab for booking list
@@ -303,4 +421,130 @@ final todayBookingsProvider = Provider<List<BookingModel>>((ref) {
 final bookingByIdProvider = Provider.family<BookingModel?, String>((ref, id) {
   final all = ref.watch(bookingsProvider).value ?? [];
   return all.where((b) => b.id == id).firstOrNull;
+});
+
+/// Live WebSocket booking alert model for in-app floating notifications
+class LiveBookingAlert {
+  final String title;
+  final String message;
+  final BookingModel booking;
+  final String eventType;
+  final DateTime timestamp;
+
+  const LiveBookingAlert({
+    required this.title,
+    required this.message,
+    required this.booking,
+    required this.eventType,
+    required this.timestamp,
+  });
+}
+
+/// StateProvider holding the latest live booking alert to display in UI
+final latestLiveBookingAlertProvider = StateProvider<LiveBookingAlert?>(
+  (ref) => null,
+);
+
+/// Provider that syncs live WebSocket events with BookingsController
+final bookingWebSocketSyncProvider = Provider<void>((ref) {
+  final wsService = ref.watch(webSocketServiceProvider);
+  final activeBusinessId = ref.watch(activeBusinessIdProvider);
+
+  if (activeBusinessId != null && activeBusinessId.isNotEmpty) {
+    wsService.connect(businessId: activeBusinessId);
+  }
+
+  // Listen to incoming WebSocket events
+  final subscription = wsService.eventStream.listen((eventMap) {
+    final event = eventMap['event']?.toString() ?? '';
+    final businessId = eventMap['businessId']?.toString();
+    final data = eventMap['data'];
+
+    // Only process events for current active business
+    if (businessId != null &&
+        activeBusinessId != null &&
+        businessId != activeBusinessId) {
+      return;
+    }
+
+    if (data is! Map<String, dynamic>) return;
+
+    final bookingJson = data['booking'];
+    if (bookingJson is! Map<String, dynamic>) {
+      if (event == 'booking:deleted') {
+        final deletedId =
+            data['deletedId']?.toString() ?? data['bookingId']?.toString();
+        if (deletedId != null) {
+          ref.read(bookingsProvider.notifier).onLiveBookingDeleted(deletedId);
+        }
+      }
+      return;
+    }
+
+    try {
+      final booking = BookingModel.fromJson(bookingJson);
+
+      switch (event) {
+        case 'booking:created':
+          ref.read(bookingsProvider.notifier).onLiveBookingCreated(booking);
+          ref
+              .read(latestLiveBookingAlertProvider.notifier)
+              .state = LiveBookingAlert(
+            title: 'New Appointment Booked!',
+            message:
+                '${booking.customerName} reserved ${booking.serviceName ?? "an appointment"}. Ref: ${booking.displayId}',
+            booking: booking,
+            eventType: event,
+            timestamp: DateTime.now(),
+          );
+          break;
+
+        case 'booking:updated':
+        case 'booking:rescheduled':
+          ref.read(bookingsProvider.notifier).onLiveBookingUpdated(booking);
+          ref
+              .read(latestLiveBookingAlertProvider.notifier)
+              .state = LiveBookingAlert(
+            title: event == 'booking:rescheduled'
+                ? 'Appointment Rescheduled'
+                : 'Booking Updated',
+            message:
+                '${booking.customerName} (${booking.displayId}) was updated.',
+            booking: booking,
+            eventType: event,
+            timestamp: DateTime.now(),
+          );
+          break;
+
+        case 'booking:cancelled':
+          ref
+              .read(bookingsProvider.notifier)
+              .onLiveBookingCancelled(
+                booking.id,
+                reason: booking.cancellationReason,
+              );
+          ref
+              .read(latestLiveBookingAlertProvider.notifier)
+              .state = LiveBookingAlert(
+            title: 'Appointment Cancelled',
+            message:
+                'Booking ${booking.displayId} for ${booking.customerName} was cancelled.',
+            booking: booking,
+            eventType: event,
+            timestamp: DateTime.now(),
+          );
+          break;
+
+        case 'booking:deleted':
+          ref.read(bookingsProvider.notifier).onLiveBookingDeleted(booking.id);
+          break;
+      }
+    } catch (e) {
+      debugPrint('[WebSocketSync] Error handling booking event: $e');
+    }
+  });
+
+  ref.onDispose(() {
+    subscription.cancel();
+  });
 });

@@ -186,6 +186,26 @@ class BookingService {
 
         const price = data.price !== undefined ? parseFloat(data.price) : parseFloat(service.price);
 
+        // Conflict prevention: check if slot is already occupied
+        const conflictWhere = {
+            business_id: business.id,
+            status: 'confirmed',
+            [Op.and]: [
+                { start_at: { [Op.lt]: endAt } },
+                { end_at: { [Op.gt]: startAt } },
+            ],
+        };
+        if (staff) {
+            conflictWhere.staff_id = staff.id;
+        }
+        const existingConflict = await Booking.findOne({ where: conflictWhere });
+        if (existingConflict) {
+            const error = new Error('Slot already booked.');
+            error.statusCode = 409;
+            error.messageToShow = 'This time slot is already reserved. Please select another available time.';
+            throw error;
+        }
+
         const transaction = await sequelize.transaction();
         try {
             // CRM Ledger: Auto upsert customer
@@ -257,6 +277,16 @@ class BookingService {
                 } catch (notifErr) {
                     console.warn('⚠️ Push notification dispatch warning:', notifErr.message);
                 }
+            }
+
+            // Broadcast real-time live WebSocket event to business room
+            try {
+                const websocketService = require('../websocket/websocket.service');
+                websocketService.broadcastBookingEvent('booking:created', fullBooking, {
+                    message: `New appointment booked for ${fullBooking.customer?.name || 'Customer'}!`,
+                });
+            } catch (wsErr) {
+                console.warn('⚠️ WebSocket broadcast warning:', wsErr.message);
             }
 
             return {
@@ -423,6 +453,88 @@ class BookingService {
     }
 
     /**
+     * Public lookup of occupied slots for a given date (for live client availability)
+     * Sanitized: returns only { id, startAt, endAt, staffId, status } without PII.
+     */
+    async getPublicBookedSlots(businessIdentifier, dateStr) {
+        if (!businessIdentifier) {
+            const error = new Error('Business identifier is required.');
+            error.statusCode = 400;
+            error.messageToShow = 'Business identifier is required.';
+            throw error;
+        }
+
+        const trimmed = String(businessIdentifier).trim();
+        const cleanSlug = trimmed.toLowerCase();
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed);
+
+        let whereClause;
+        if (!cleanSlug || cleanSlug === 'active' || cleanSlug === 'default') {
+            whereClause = { is_active: true };
+        } else if (isUUID) {
+            whereClause = { [Op.or]: [{ id: trimmed }, { slug: cleanSlug }] };
+        } else {
+            whereClause = { slug: cleanSlug };
+        }
+
+        const business = await Business.findOne({
+            where: whereClause,
+            order: [
+                ['is_active', 'DESC'],
+                ['created_at', 'DESC'],
+            ],
+        });
+
+        if (!business) {
+            const error = new Error('Business not found.');
+            error.statusCode = 404;
+            error.messageToShow = 'The requested business could not be found.';
+            throw error;
+        }
+
+        let startDate, endDate;
+        if (dateStr) {
+            const parsed = new Date(dateStr);
+            if (!isNaN(parsed.getTime())) {
+                startDate = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 0, 0, 0, 0);
+                endDate = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 23, 59, 59, 999);
+            }
+        }
+
+        const bookingWhere = {
+            business_id: business.id,
+            status: 'confirmed',
+        };
+
+        if (startDate && endDate) {
+            bookingWhere.start_at = {
+                [Op.between]: [startDate, endDate],
+            };
+        }
+
+        const bookings = await Booking.findAll({
+            where: bookingWhere,
+            attributes: ['id', 'start_at', 'end_at', 'staff_id', 'status'],
+            order: [['start_at', 'ASC']],
+        });
+
+        const bookedSlots = bookings.map((b) => ({
+            id: b.id,
+            startAt: b.start_at,
+            endAt: b.end_at,
+            staffId: b.staff_id,
+            status: b.status,
+        }));
+
+        return {
+            businessId: business.id,
+            date: dateStr || null,
+            bookedSlots,
+            messageToShow: 'Occupied slots retrieved successfully.',
+        };
+    }
+
+    /**
      * Update booking status (confirmed, completed, cancelled, noShow)
      */
     async updateBookingStatus(ownerId, bookingId, { status, cancellationReason }) {
@@ -475,6 +587,22 @@ class BookingService {
             } catch (notifErr) {
                 console.warn('⚠️ Push notification dispatch warning:', notifErr.message);
             }
+        }
+
+        // Broadcast real-time live WebSocket event to business room
+        try {
+            const websocketService = require('../websocket/websocket.service');
+            websocketService.broadcastBookingEvent(
+                status === 'cancelled' ? 'booking:cancelled' : 'booking:updated',
+                booking,
+                {
+                    status,
+                    cancellationReason,
+                    message: `Booking ${booking.booking_reference || booking.id} status updated to ${status}.`,
+                }
+            );
+        } catch (wsErr) {
+            console.warn('⚠️ WebSocket broadcast warning:', wsErr.message);
         }
 
         const statusLabels = {
@@ -532,6 +660,27 @@ class BookingService {
             if (newStaff) staffName = newStaff.name;
         }
 
+        // Check conflict for rescheduled slot (excluding current booking)
+        const rescheduleConflictWhere = {
+            business_id: booking.business_id,
+            id: { [Op.ne]: booking.id },
+            status: 'confirmed',
+            [Op.and]: [
+                { start_at: { [Op.lt]: newEndAt } },
+                { end_at: { [Op.gt]: newStartAt } },
+            ],
+        };
+        if (newStaffId) {
+            rescheduleConflictWhere.staff_id = newStaffId;
+        }
+        const existingRescheduleConflict = await Booking.findOne({ where: rescheduleConflictWhere });
+        if (existingRescheduleConflict) {
+            const error = new Error('Reschedule slot conflict.');
+            error.statusCode = 409;
+            error.messageToShow = 'The requested new time slot is already occupied. Please pick another time.';
+            throw error;
+        }
+
         const transaction = await sequelize.transaction();
         try {
             await BookingReschedule.create({
@@ -580,6 +729,18 @@ class BookingService {
                 }
             }
 
+            // Broadcast real-time live WebSocket event to business room
+            try {
+                const websocketService = require('../websocket/websocket.service');
+                websocketService.broadcastBookingEvent('booking:rescheduled', updatedBooking, {
+                    oldSlot: { startAt: booking.start_at, endAt: booking.end_at },
+                    newSlot: { startAt: newStartAt, endAt: newEndAt },
+                    message: `Appointment ${updatedBooking.booking_reference || updatedBooking.id} has been rescheduled.`,
+                });
+            } catch (wsErr) {
+                console.warn('⚠️ WebSocket broadcast warning:', wsErr.message);
+            }
+
             return {
                 booking: updatedBooking.toClientJSON(),
                 messageToShow: 'Appointment rescheduled successfully.',
@@ -612,8 +773,20 @@ class BookingService {
             throw error;
         }
 
+        const businessId = booking.business_id;
         const ref = booking.booking_reference;
         await booking.destroy();
+
+        // Broadcast real-time live WebSocket event to business room
+        try {
+            const websocketService = require('../websocket/websocket.service');
+            websocketService.broadcastBookingEvent('booking:deleted', { business_id: businessId, id: bookingId, booking_reference: ref }, {
+                deletedId: bookingId,
+                message: `Appointment ${ref} was deleted.`,
+            });
+        } catch (wsErr) {
+            console.warn('⚠️ WebSocket broadcast warning:', wsErr.message);
+        }
 
         return {
             deletedId: bookingId,

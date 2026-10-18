@@ -100,6 +100,26 @@ class BookingController {
     }
 
     /**
+     * Public booked slots lookup for live calendar availability
+     * GET /api/v1/bookings/public-slots/:businessId?date=YYYY-MM-DD
+     */
+    async getPublicBookedSlots(req, res, next) {
+        try {
+            const businessId = req.params.businessId;
+            const dateStr = req.query.date;
+            const result = await bookingService.getPublicBookedSlots(businessId, dateStr);
+            return sendSuccess(res, {
+                statusCode: 200,
+                message: 'Occupied slots retrieved successfully.',
+                messageToShow: result.messageToShow,
+                data: result,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
      * Update booking status (confirmed, completed, cancelled, noShow)
      * PATCH /api/v1/bookings/:id/status
      */
