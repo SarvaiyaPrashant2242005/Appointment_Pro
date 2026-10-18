@@ -2,12 +2,17 @@ const app = require('./app');
 const env = require('./config/env');
 const { sequelize, connectDatabase } = require('./config/database');
 
+const { getLocalIpAddress } = require('./utils/network');
+
 const startServer = async () => {
     try {
         await connectDatabase();
 
+        const localIp = getLocalIpAddress();
         const server = app.listen(env.port, () => {
-            console.log(`AppointmentPro API running on port ${env.port}`);
+            console.log(`AppointmentPro API running:`);
+            console.log(`  Local:   http://localhost:${env.port}`);
+            console.log(`  Network: http://${localIp}:${env.port} (Scan QR from mobile device)`);
         });
 
         // Also listen on port 8080 for web booking template requests
@@ -15,7 +20,9 @@ const startServer = async () => {
         if (Number(env.port) !== 8080) {
             try {
                 webServer = app.listen(8080, () => {
-                    console.log(`AppointmentPro Web Booking Template running on http://localhost:8080`);
+                    console.log(`AppointmentPro Web Booking Template running:`);
+                    console.log(`  Local:   http://localhost:8080`);
+                    console.log(`  Network: http://${localIp}:8080`);
                 });
                 webServer.on('error', (err) => {
                     console.log(`Port 8080 notice: ${err.message}`);
@@ -29,7 +36,7 @@ const startServer = async () => {
             console.log(`${signal} received. Closing server...`);
 
             if (webServer) {
-                try { webServer.close(); } catch (e) {}
+                try { webServer.close(); } catch (e) { }
             }
 
             server.close(async (error) => {

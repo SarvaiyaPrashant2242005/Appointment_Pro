@@ -100,11 +100,16 @@ const Business = sequelize.define('Business', {
     ],
 });
 
+const { getNetworkBaseUrl, getLocalIpAddress } = require('../../utils/network');
+
 /**
  * Format response to support both database snake_case and Flutter client camelCase
  */
 Business.prototype.toClientJSON = function () {
     const raw = this.get({ plain: true });
+    const port = process.env.PORT || 5000;
+    const networkBase = getNetworkBaseUrl(port);
+    const slug = raw.slug || raw.id;
     return {
         ...raw,
         // CamelCase aliases for Flutter BusinessModel compatibility
@@ -114,6 +119,10 @@ Business.prototype.toClientJSON = function () {
         isActive: raw.is_active,
         createdAt: raw.created_at,
         updatedAt: raw.updated_at,
+        // Dynamic URLs for QR code and public customer booking
+        bookingUrl: `${networkBase}/${slug}/${raw.id}`,
+        shortBookingUrl: `${networkBase}/book/${slug}`,
+        networkHost: getLocalIpAddress(),
     };
 };
 

@@ -188,13 +188,24 @@ class BusinessService {
      * Public lookup by slug (for customer online booking)
      */
     async getPublicBusinessBySlug(slug) {
-        const cleanSlug = slug.trim().toLowerCase();
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug.trim());
+        const cleanSlug = (slug || '').trim().toLowerCase();
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
 
-        const business = await Business.findOne({
-            where: isUUID
-                ? { [Op.or]: [{ id: slug.trim() }, { slug: cleanSlug }] }
-                : { slug: cleanSlug },
+        let whereClause;
+        if (!cleanSlug || cleanSlug === 'active' || cleanSlug === 'default') {
+            whereClause = { is_active: true };
+        } else if (isUUID) {
+            whereClause = { [Op.or]: [{ id: slug.trim() }, { slug: cleanSlug }] };
+        } else {
+            whereClause = { slug: cleanSlug };
+        }
+
+        let business = await Business.findOne({
+            where: whereClause,
+            order: [
+                ['is_active', 'DESC'],
+                ['created_at', 'DESC'],
+            ],
             attributes: [
                 'id',
                 'name',
@@ -211,6 +222,13 @@ class BusinessService {
                 'created_at',
             ],
         });
+
+        if (!business && (!cleanSlug || cleanSlug === 'active' || cleanSlug === 'default')) {
+            // Fallback to any business if none explicitly active
+            business = await Business.findOne({
+                order: [['created_at', 'ASC']],
+            });
+        }
 
         if (!business) {
             const error = new Error('No business found for this booking link.');

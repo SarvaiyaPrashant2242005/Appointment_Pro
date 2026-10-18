@@ -22,14 +22,36 @@ app.use(morgan(env.nodeEnv === 'development' ? 'dev' : 'combined'));
 // Serve uploaded assets statically
 app.use(`/${env.uploadDir}`, express.static(path.join(__dirname, env.uploadDir)));
 
-// Health check endpoint
+const { getLocalIpAddress, getNetworkBaseUrl } = require('./utils/network');
+
+// Health check endpoint with dynamic network info
 app.get('/api/health', (req, res) => {
+    const ip = getLocalIpAddress();
+    const port = env.port || 5000;
     res.status(200).json({
         success: true,
         message: `AppointmentPro API is running on port ${env.port}`,
         messageToShow: `AppointmentPro server is active and running smoothly.`,
         environment: env.nodeEnv,
+        serverIp: ip,
+        networkUrl: `http://${ip}:${port}`,
         timestamp: new Date().toISOString(),
+    });
+});
+
+// Dynamic Network & Host Discovery endpoint for QR scanning
+app.get(['/api/v1/system/network-info', '/api/network-info'], (req, res) => {
+    const ip = getLocalIpAddress();
+    const port = Number(env.port || 5000);
+    res.status(200).json({
+        success: true,
+        ip,
+        port,
+        webPort: 8080,
+        localUrl: `http://localhost:${port}`,
+        networkUrl: `http://${ip}:${port}`,
+        webLocalUrl: `http://localhost:8080`,
+        webNetworkUrl: `http://${ip}:8080`,
     });
 });
 
@@ -38,9 +60,25 @@ app.use('/api/v1', apiRoutes);
 app.use('/api', apiRoutes); // Backwards compatibility alias
 
 // Customer online booking web template (index.html)
-// Serves /:businessSlug/:businessId (e.g. /apex-medico-2061/a42ac5d4-6a69-4762-bc39-d366b7519220)
+// Serves dynamic booking routes e.g. /:slug, /:slug/:businessId, /book/:slug
 const publicHtmlPath = path.join(__dirname, '..', 'index.html');
-app.get(['/:businessSlug/:businessId', '/slug/:businessSlug', '/book/:businessSlug', '/business/:businessSlug', '/'], (req, res) => {
+const bookingPaths = [
+    '/',
+    '/index.html',
+    '/:businessSlug',
+    '/:businessSlug/:businessId',
+    '/book/:businessSlug',
+    '/book/:businessSlug/:businessId',
+    '/slug/:businessSlug',
+    '/slug/:businessSlug/:businessId',
+    '/business/:businessSlug',
+    '/business/:businessSlug/:businessId',
+];
+
+app.get(bookingPaths, (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.includes('.')) {
+        return next();
+    }
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');

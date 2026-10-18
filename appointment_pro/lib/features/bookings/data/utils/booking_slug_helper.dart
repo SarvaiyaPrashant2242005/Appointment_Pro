@@ -30,7 +30,11 @@ class BookingSlugHelper {
   }
 
   /// Builds the complete shareable booking URL for a business.
+  /// Prioritizes the dynamic network URL from the backend server so QR scanning works across devices.
   static String buildBookingUrl(BusinessModel business) {
+    if (business.bookingUrl != null && business.bookingUrl!.trim().isNotEmpty) {
+      return business.bookingUrl!.trim();
+    }
     final slug = generateSlug(business);
     return '$publicBookingBaseUrl/$slug';
   }

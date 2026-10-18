@@ -14,6 +14,7 @@ class BusinessModel {
   final String currency;
   final String timezone;
   final bool isActive;
+  final String? bookingUrl;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -31,6 +32,7 @@ class BusinessModel {
     this.currency = 'INR',
     this.timezone = 'Asia/Kolkata',
     this.isActive = false,
+    this.bookingUrl,
     required this.createdAt,
     this.updatedAt,
   });
@@ -62,6 +64,7 @@ class BusinessModel {
     String? currency,
     String? timezone,
     bool? isActive,
+    String? bookingUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -79,6 +82,7 @@ class BusinessModel {
       currency: currency ?? this.currency,
       timezone: timezone ?? this.timezone,
       isActive: isActive ?? this.isActive,
+      bookingUrl: bookingUrl ?? this.bookingUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -98,6 +102,7 @@ class BusinessModel {
     'currency': currency,
     'timezone': timezone,
     'isActive': isActive,
+    if (bookingUrl != null) 'bookingUrl': bookingUrl,
     'createdAt': createdAt.toIso8601String(),
     if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
   };
@@ -131,17 +136,22 @@ class BusinessModel {
       currency: (json['currency'] ?? 'INR') as String,
       timezone: (json['timezone'] ?? 'Asia/Kolkata') as String,
       isActive: json['isActive'] == true || json['is_active'] == true,
+      bookingUrl:
+          (json['bookingUrl'] ??
+                  json['booking_url'] ??
+                  json['publicBookingUrl'])
+              as String?,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : (json['created_at'] != null
-              ? DateTime.tryParse(json['created_at'].toString()) ??
-                  DateTime.now()
-              : DateTime.now()),
+                ? DateTime.tryParse(json['created_at'].toString()) ??
+                      DateTime.now()
+                : DateTime.now()),
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'].toString())
           : (json['updated_at'] != null
-              ? DateTime.tryParse(json['updated_at'].toString())
-              : null),
+                ? DateTime.tryParse(json['updated_at'].toString())
+                : null),
     );
   }
 }
