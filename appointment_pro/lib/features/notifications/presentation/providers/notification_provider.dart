@@ -43,6 +43,25 @@ class NotificationsController
     });
   }
 
+  Future<void> onNotificationReceived(AppNotificationModel notification) async {
+    final businessId = ref.read(activeBusinessIdProvider);
+    if (businessId != null &&
+        businessId.isNotEmpty &&
+        notification.businessId.isNotEmpty &&
+        notification.businessId != businessId) {
+      return;
+    }
+
+    final current = state.asData?.value ?? [];
+    if (!current.any((n) => n.id == notification.id)) {
+      state = AsyncData([notification, ...current]);
+    }
+
+    try {
+      await _repo.saveReceivedNotification(notification);
+    } catch (_) {}
+  }
+
   Future<void> markAsRead(String notificationId) async {
     final businessId = ref.read(activeBusinessIdProvider);
     if (businessId == null || businessId.isEmpty) return;

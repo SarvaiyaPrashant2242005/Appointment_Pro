@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app/app.dart';
 import 'app/theme/theme_provider.dart';
 import 'core/services/fcm_service.dart';
+import 'core/services/local_notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -18,6 +19,12 @@ void main() async {
     );
   } catch (e) {
     debugPrint('Firebase initialization note: $e');
+  }
+
+  try {
+    await LocalNotificationService.instance.initialize();
+  } catch (e) {
+    debugPrint('Local notifications initialization note: $e');
   }
 
   try {

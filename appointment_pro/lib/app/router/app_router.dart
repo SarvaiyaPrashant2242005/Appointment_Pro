@@ -92,7 +92,21 @@ class AppRouter {
     );
   }
 
+  static final GlobalKey<NavigatorState> rootNavigatorKey =
+      GlobalKey<NavigatorState>();
+
+  static void navigateToBooking(String bookingId) {
+    if (bookingId.isNotEmpty) {
+      router.push('/bookings/$bookingId');
+    }
+  }
+
+  static void navigateToNotifications() {
+    router.push(notifications);
+  }
+
   static final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: splash,
     routes: [
       GoRoute(

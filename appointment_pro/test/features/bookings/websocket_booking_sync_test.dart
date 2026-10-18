@@ -1,8 +1,14 @@
+import 'package:appointment_pro/app/theme/theme_provider.dart';
+import 'package:appointment_pro/core/services/local_notification_service.dart';
 import 'package:appointment_pro/core/services/websocket_service.dart';
 import 'package:appointment_pro/features/bookings/data/models/booking_model.dart';
 import 'package:appointment_pro/features/bookings/presentation/providers/booking_provider.dart';
+import 'package:appointment_pro/features/bussiness_setup/presentation/providers/business_provider.dart';
+import 'package:appointment_pro/features/notifications/data/models/app_notification_model.dart';
+import 'package:appointment_pro/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('WebSocketEvent parsing & handling', () {
@@ -173,6 +179,57 @@ void main() {
       final state = container.read(bookingsProvider).asData?.value;
       expect(state, isNotNull);
       expect(state!.isEmpty, isTrue);
+    });
+
+    test('Live notification reception adds notification and increments unread count', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          activeBusinessIdProvider.overrideWith((ref) => 'biz-test'),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Build initial notifications
+      await container.read(notificationsProvider.future);
+      expect(container.read(unreadNotificationsCountProvider), equals(0));
+
+      final liveNotif = AppNotificationModel(
+        id: 'notif_live_001',
+        businessId: 'biz-test',
+        bookingId: 'bk-1',
+        type: NotificationType.newBooking,
+        title: '🎉 New Appointment Booked!',
+        body: 'Aarav Patel booked Consultation',
+        customerName: 'Aarav Patel',
+        serviceName: 'Consultation',
+        startAt: now,
+        createdAt: DateTime.now(),
+        isRead: false,
+      );
+
+      await container.read(notificationsProvider.notifier).onNotificationReceived(liveNotif);
+
+      final notifs = container.read(notificationsProvider).asData?.value;
+      expect(notifs, isNotNull);
+      expect(notifs!.length, equals(1));
+      expect(notifs[0].id, equals('notif_live_001'));
+      expect(container.read(unreadNotificationsCountProvider), equals(1));
+    });
+
+    test('LocalNotificationService handles booking notifications safely', () async {
+      // Must not throw on showBookingNotification or cancel
+      await LocalNotificationService.instance.showBookingNotification(
+        bookingId: 'bk-test-123',
+        title: '🎉 New Appointment Booked!',
+        body: 'Test booking notification',
+      );
+
+      await LocalNotificationService.instance.cancel(12345);
+      await LocalNotificationService.instance.cancelAll();
     });
   });
 }

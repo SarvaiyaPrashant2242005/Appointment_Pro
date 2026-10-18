@@ -106,6 +106,7 @@ class DashboardDrawer extends ConsumerWidget {
                     context,
                     icon: Icons.design_services_outlined,
                     title: 'Services',
+                    badge: servicesCount,
                     onTap: () => _navigate(context, AppRouter.services),
                   ),
 
@@ -113,18 +114,21 @@ class DashboardDrawer extends ConsumerWidget {
                     context,
                     icon: Icons.people_outline_rounded,
                     title: 'Staff Members',
+                    badge: staffCount,
                     onTap: () => _navigate(context, AppRouter.staff),
                   ),
                   _tile(
                     context,
                     icon: Icons.calendar_today_rounded,
                     title: 'Bookings & Appointments',
+                    badge: bookingsCount,
                     onTap: () => _navigate(context, AppRouter.bookings),
                   ),
                   _tile(
                     context,
                     icon: Icons.people_alt_outlined,
                     title: 'Customers & Clients',
+                    badge: customersCount,
                     onTap: () => _navigate(context, AppRouter.customers),
                   ),
                   _tile(

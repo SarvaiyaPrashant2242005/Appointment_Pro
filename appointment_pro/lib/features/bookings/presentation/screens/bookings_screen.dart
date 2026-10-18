@@ -157,17 +157,6 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
     // Keep live WebSocket sync active
     ref.watch(bookingWebSocketSyncProvider);
 
-    // Listen for live incoming booking notifications
-    ref.listen<LiveBookingAlert?>(latestLiveBookingAlertProvider, (previous, next) {
-      if (next != null && mounted) {
-        if (next.eventType == 'booking:cancelled') {
-          AppToast.warning(context, next.message);
-        } else {
-          AppToast.success(context, next.message);
-        }
-      }
-    });
-
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final activeBusiness = ref.watch(activeBusinessProvider);

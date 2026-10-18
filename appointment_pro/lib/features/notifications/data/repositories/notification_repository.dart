@@ -111,6 +111,14 @@ class NotificationRepository {
     return notification;
   }
 
+  /// Saves a notification received from real-time events (WebSocket or FCM)
+  Future<void> saveReceivedNotification(AppNotificationModel notification) async {
+    await _local.saveNotification(notification);
+    try {
+      await _remote.saveNotification(notification);
+    } catch (_) {}
+  }
+
   Future<void> markAsRead(String businessId, String notificationId) async {
     await _local.markAsRead(businessId, notificationId);
     await _remote.markAsRead(businessId, notificationId);

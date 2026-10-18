@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
+import 'local_notification_service.dart';
 import '../../features/notifications/data/models/app_notification_model.dart';
 
 /// Top-level background message handler required by Firebase Messaging.
@@ -98,6 +99,20 @@ class FcmService {
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('FCM Foreground message: ${message.notification?.title}');
         _messageController.add(message);
+
+        final notification = message.notification;
+        final title = notification?.title ?? message.data['title']?.toString();
+        final body = notification?.body ?? message.data['body']?.toString();
+        final bookingId = message.data['bookingId']?.toString();
+
+        if (title != null && title.isNotEmpty) {
+          LocalNotificationService.instance.showBookingNotification(
+            bookingId: bookingId ?? 'fcm_booking',
+            title: title,
+            body: body ?? '',
+            payload: bookingId,
+          );
+        }
       });
 
       // 7. Notification tapped when app in background

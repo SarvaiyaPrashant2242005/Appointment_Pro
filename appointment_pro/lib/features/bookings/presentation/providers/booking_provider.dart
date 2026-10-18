@@ -1,10 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/services/api_client.dart';
+import '../../../../core/services/local_notification_service.dart';
 import '../../../../core/services/local_storage_service.dart';
 import '../../../../core/services/websocket_service.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
+import '../../../notifications/data/models/app_notification_model.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../../services/presentation/providers/service_provider.dart';
 import '../../../staff/presentation/providers/staff_provider.dart';
 import '../../data/datasources/booking_local_datasource.dart';
@@ -484,15 +488,97 @@ final bookingWebSocketSyncProvider = Provider<void>((ref) {
     try {
       final booking = BookingModel.fromJson(bookingJson);
 
+      final dateFormat = DateFormat('EEE, MMM d · h:mm a');
+
       switch (event) {
         case 'booking:created':
           ref.read(bookingsProvider.notifier).onLiveBookingCreated(booking);
+
+          final dateStr = dateFormat.format(booking.startAt);
+          final notifTitle = '🎉 New Appointment Booked!';
+          final notifBody =
+              '${booking.customerName} booked ${booking.serviceName ?? "an appointment"} for $dateStr. Ref: ${booking.displayId}';
+
+          // 1. Show real device OS system notification (heads-up banner, sound, vibration)
+          LocalNotificationService.instance.showBookingNotification(
+            bookingId: booking.id,
+            title: notifTitle,
+            body: notifBody,
+            payload: booking.id,
+          );
+
+          // 2. Persist to in-app Notifications center & update badge counter
+          final appNotif = AppNotificationModel(
+            id: 'notif_${DateTime.now().millisecondsSinceEpoch}_${booking.id}',
+            businessId: booking.businessId,
+            bookingId: booking.id,
+            type: NotificationType.newBooking,
+            title: notifTitle,
+            body: notifBody,
+            customerName: booking.customerName,
+            serviceName: booking.serviceName ?? 'Service',
+            startAt: booking.startAt,
+            endAt: booking.endAt,
+            createdAt: DateTime.now(),
+            isRead: false,
+            metadata: {
+              'displayId': booking.displayId,
+              'source': 'live_websocket',
+            },
+          );
+          ref.read(notificationsProvider.notifier).onNotificationReceived(appNotif);
+
+          ref.read(latestLiveBookingAlertProvider.notifier).state = LiveBookingAlert(
+            title: notifTitle,
+            message: notifBody,
+            booking: booking,
+            eventType: event,
+            timestamp: DateTime.now(),
+          );
+          break;
+
+        case 'booking:rescheduled':
+          ref.read(bookingsProvider.notifier).onLiveBookingUpdated(booking);
+
+          final dateStr = dateFormat.format(booking.startAt);
+          final notifTitle = '🗓️ Appointment Rescheduled';
+          final notifBody =
+              '${booking.customerName} rescheduled ${booking.serviceName ?? "appointment"} to $dateStr. Ref: ${booking.displayId}';
+
+          // 1. Show real device OS system notification
+          LocalNotificationService.instance.showBookingNotification(
+            bookingId: booking.id,
+            title: notifTitle,
+            body: notifBody,
+            payload: booking.id,
+          );
+
+          // 2. Persist to in-app Notifications center & update badge counter
+          final appNotifRescheduled = AppNotificationModel(
+            id: 'notif_${DateTime.now().millisecondsSinceEpoch}_${booking.id}',
+            businessId: booking.businessId,
+            bookingId: booking.id,
+            type: NotificationType.bookingRescheduled,
+            title: notifTitle,
+            body: notifBody,
+            customerName: booking.customerName,
+            serviceName: booking.serviceName ?? 'Service',
+            startAt: booking.startAt,
+            endAt: booking.endAt,
+            createdAt: DateTime.now(),
+            isRead: false,
+            metadata: {
+              'displayId': booking.displayId,
+              'source': 'live_websocket',
+            },
+          );
           ref
-              .read(latestLiveBookingAlertProvider.notifier)
-              .state = LiveBookingAlert(
-            title: 'New Appointment Booked!',
-            message:
-                '${booking.customerName} reserved ${booking.serviceName ?? "an appointment"}. Ref: ${booking.displayId}',
+              .read(notificationsProvider.notifier)
+              .onNotificationReceived(appNotifRescheduled);
+
+          ref.read(latestLiveBookingAlertProvider.notifier).state = LiveBookingAlert(
+            title: notifTitle,
+            message: notifBody,
             booking: booking,
             eventType: event,
             timestamp: DateTime.now(),
@@ -500,35 +586,58 @@ final bookingWebSocketSyncProvider = Provider<void>((ref) {
           break;
 
         case 'booking:updated':
-        case 'booking:rescheduled':
           ref.read(bookingsProvider.notifier).onLiveBookingUpdated(booking);
-          ref
-              .read(latestLiveBookingAlertProvider.notifier)
-              .state = LiveBookingAlert(
-            title: event == 'booking:rescheduled'
-                ? 'Appointment Rescheduled'
-                : 'Booking Updated',
-            message:
-                '${booking.customerName} (${booking.displayId}) was updated.',
-            booking: booking,
-            eventType: event,
-            timestamp: DateTime.now(),
-          );
           break;
 
         case 'booking:cancelled':
-          ref
-              .read(bookingsProvider.notifier)
-              .onLiveBookingCancelled(
+          ref.read(bookingsProvider.notifier).onLiveBookingCancelled(
                 booking.id,
                 reason: booking.cancellationReason,
               );
+
+          final reasonSuffix = booking.cancellationReason != null &&
+                  booking.cancellationReason!.isNotEmpty
+              ? ' Reason: "${booking.cancellationReason}"'
+              : '';
+          final notifTitle = '❌ Appointment Cancelled';
+          final notifBody =
+              '${booking.customerName} cancelled their appointment for ${booking.serviceName ?? "Service"} (Ref: ${booking.displayId}).$reasonSuffix';
+
+          // 1. Show real device OS system notification
+          LocalNotificationService.instance.showBookingNotification(
+            bookingId: booking.id,
+            title: notifTitle,
+            body: notifBody,
+            payload: booking.id,
+          );
+
+          // 2. Persist to in-app Notifications center & update badge counter
+          final appNotifCancelled = AppNotificationModel(
+            id: 'notif_${DateTime.now().millisecondsSinceEpoch}_${booking.id}',
+            businessId: booking.businessId,
+            bookingId: booking.id,
+            type: NotificationType.bookingCancelled,
+            title: notifTitle,
+            body: notifBody,
+            customerName: booking.customerName,
+            serviceName: booking.serviceName ?? 'Service',
+            startAt: booking.startAt,
+            endAt: booking.endAt,
+            cancellationReason: booking.cancellationReason,
+            createdAt: DateTime.now(),
+            isRead: false,
+            metadata: {
+              'displayId': booking.displayId,
+              'source': 'live_websocket',
+            },
+          );
           ref
-              .read(latestLiveBookingAlertProvider.notifier)
-              .state = LiveBookingAlert(
-            title: 'Appointment Cancelled',
-            message:
-                'Booking ${booking.displayId} for ${booking.customerName} was cancelled.',
+              .read(notificationsProvider.notifier)
+              .onNotificationReceived(appNotifCancelled);
+
+          ref.read(latestLiveBookingAlertProvider.notifier).state = LiveBookingAlert(
+            title: notifTitle,
+            message: notifBody,
             booking: booking,
             eventType: event,
             timestamp: DateTime.now(),
