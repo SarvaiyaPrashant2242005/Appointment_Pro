@@ -1,0 +1,12 @@
+.git
+.github
+appointment_pro
+**/node_modules
+**/.env
+**/serviceAccountKey.json
+Server/uploads
+Server/test-*.js
+Server/*.postman_collection.json
+**/README.md
+docker-compose.yml
+Dockerfile
