@@ -1,0 +1,369 @@
+{
+  "info": {
+    "_postman_id": "b3e0c7a5-d8f9-4b6e-a342-990e118939c1",
+    "name": "AppointmentPro — Auth & Users API",
+    "description": "Complete Postman collection for testing AppointmentPro Auth (Register with OTP, Verify Email, Login, Token Refresh, Profile, Forgot Password, Reset Password, and Logout).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1/auth",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testEmail",
+      "value": "prashant@example.com",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "health"]
+        },
+        "description": "Verifies that the server is online and operational."
+      },
+      "response": []
+    },
+    {
+      "name": "1. Register (Dispatches OTP)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Prashant Sarvaiya\",\n  \"email\": \"{{testEmail}}\",\n  \"phone\": \"+919876543210\",\n  \"password\": \"Password@123\",\n  \"role\": \"owner\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["register"]
+        },
+        "description": "Registers a new user and generates a 6-digit OTP sent via SMTP (or logged in terminal in development)."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Verify Email (Using OTP)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.data && jsonData.data.accessToken) {",
+              "    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+              "    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+              "    console.log('✅ Tokens automatically saved to collection variables!');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"PASTE_6_DIGIT_OTP_HERE\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/verify-email",
+          "host": ["{{baseUrl}}"],
+          "path": ["verify-email"]
+        },
+        "description": "Submits the 6-digit OTP received via email or server console. Sets email as verified and returns JWT tokens."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Resend Verification OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/resend-verification",
+          "host": ["{{baseUrl}}"],
+          "path": ["resend-verification"]
+        },
+        "description": "Sends a fresh 6-digit verification code if the previous one expired."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.data && jsonData.data.accessToken) {",
+              "    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+              "    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+              "    console.log('✅ Access Token & Refresh Token saved!');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"Password@123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["login"]
+        },
+        "description": "Authenticates user and returns new accessToken & refreshToken."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Get Profile (/me)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["me"]
+        },
+        "description": "Fetches current authenticated user profile using the Bearer access token."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Update Profile",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "fullName",
+              "value": "Prashant R. Sarvaiya",
+              "type": "text"
+            },
+            {
+              "key": "phone",
+              "value": "+919876543211",
+              "type": "text"
+            },
+            {
+              "key": "avatar",
+              "type": "file",
+              "description": "Optional: upload JPG, PNG, or WebP profile picture"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/profile",
+          "host": ["{{baseUrl}}"],
+          "path": ["profile"]
+        },
+        "description": "Updates full name, phone number, and optional avatar image file."
+      },
+      "response": []
+    },
+    {
+      "name": "7. Refresh Access Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.data && jsonData.data.accessToken) {",
+              "    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+              "    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+              "    console.log('✅ Rotated Tokens successfully saved!');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/refresh-token",
+          "host": ["{{baseUrl}}"],
+          "path": ["refresh-token"]
+        },
+        "description": "Exchanges a valid refresh token for a brand new access and refresh token pair."
+      },
+      "response": []
+    },
+    {
+      "name": "8. Change Password",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"Password@123\",\n  \"newPassword\": \"NewPassword@456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/change-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["change-password"]
+        },
+        "description": "Allows an authenticated user to change their password and invalidates prior sessions."
+      },
+      "response": []
+    },
+    {
+      "name": "9. Forgot Password (Request OTP)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/forgot-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["forgot-password"]
+        },
+        "description": "Generates a 6-digit password reset OTP and sends it via SMTP (or terminal console)."
+      },
+      "response": []
+    },
+    {
+      "name": "10. Reset Password (with OTP)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"PASTE_RESET_OTP_HERE\",\n  \"newPassword\": \"FinalResetPassword@789\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/reset-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["reset-password"]
+        },
+        "description": "Resets the user's password using the OTP received."
+      },
+      "response": []
+    },
+    {
+      "name": "11. Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/logout",
+          "host": ["{{baseUrl}}"],
+          "path": ["logout"]
+        },
+        "description": "Destroys the current user session from user_sessions table."
+      },
+      "response": []
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../app/router/app_router.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/asset_constants.dart';
+import '../../../../core/errors/api_exception.dart';
+import '../../../../core/utils/app_toast.dart';
+import '../../data/models/register_model.dart';
+import '../providers/register_provider.dart';
+import '../widgets/register_form.dart';
+
+class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final model = RegisterModel(
+      fullName: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      phone: _phoneController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    try {
+      await ref.read(registerProvider.notifier).register(model);
+
+      if (!mounted) return;
+
+      final registerState = ref.read(registerProvider);
+      final toastMessage = registerState.successMessage ??
+          'Account created! A 6-digit verification code has been sent to your email.';
+      AppToast.info(context, toastMessage);
+
+      // Navigate to OTP verification screen with email prefilled
+      context.go(
+        '${AppRouter.verifyOtp}?email=${Uri.encodeComponent(model.email)}',
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      final message = e is ApiException
+          ? e.messageToShow
+          : e is Exception
+              ? e.toString().replaceFirst('Exception: ', '')
+              : 'Unable to save your details. Please try again.';
+
+      AppToast.error(context, message);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final registerState = ref.watch(registerProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mediaQuery = MediaQuery.of(context);
+    final isKeyboardOpen = mediaQuery.viewInsets.bottom > 0;
+    final screenWidth = mediaQuery.size.width;
+    final isTablet = screenWidth > 600;
+
+    final double logoSize = isKeyboardOpen ? 42.0 : 60.0;
+    final EdgeInsets headerPadding = isKeyboardOpen
+        ? const EdgeInsets.fromLTRB(20, 6, 20, 10)
+        : const EdgeInsets.fromLTRB(20, 10, 20, 20);
+
+    return Scaffold(
+      backgroundColor: AppColors.primary,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: isTablet ? 500 : double.infinity,
+            ),
+            child: Column(
+              children: [
+                // Top Header: Back button, Logo, Title, Subtitle
+                Padding(
+                  padding: headerPadding,
+                  child: Column(
+                    children: [
+                      if (context.canPop())
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            onPressed: () => context.pop(),
+                          ),
+                        )
+                      else
+                        SizedBox(height: isKeyboardOpen ? 0 : 8),
+
+                      // App Logo (dynamically sized)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: logoSize,
+                        height: logoSize,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.asset(
+                            AppAssets.appIconDark,
+                            width: logoSize,
+                            height: logoSize,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: isKeyboardOpen ? 8 : 14),
+                      Text(
+                        'Join AppointmentPro',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'sans-serif',
+                          fontSize: isKeyboardOpen ? 19 : 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      if (!isKeyboardOpen) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          'Create your account to manage bookings\nand grow your business.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'sans-serif',
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.75),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                // Curved Bottom Sheet
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : Colors.white,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(32),
+                        topRight: Radius.circular(32),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, -4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(32),
+                        topRight: Radius.circular(32),
+                      ),
+                      child: SingleChildScrollView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: EdgeInsets.fromLTRB(
+                          24,
+                          isKeyboardOpen ? 18 : 24,
+                          24,
+                          28,
+                        ),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 440),
+                            child: RegisterForm(
+                              formKey: _formKey,
+                              nameController: _nameController,
+                              emailController: _emailController,
+                              phoneController: _phoneController,
+                              passwordController: _passwordController,
+                              confirmPasswordController:
+                                  _confirmPasswordController,
+                              isLoading: registerState.isLoading,
+                              onSubmit: _register,
+                              onLoginTap: () => context.go(AppRouter.login),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
