@@ -22,6 +22,19 @@ class StaffCard extends ConsumerWidget {
     required this.onToggleStatus,
   });
 
+  ImageProvider? _buildAvatarProvider(StaffModel staff) {
+    final fullUrl = staff.fullAvatarUrl;
+    if (fullUrl == null || fullUrl.isEmpty) return null;
+    final file = File(fullUrl);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+    if (fullUrl.startsWith('http://') || fullUrl.startsWith('https://')) {
+      return NetworkImage(fullUrl);
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -60,14 +73,8 @@ class StaffCard extends ConsumerWidget {
                     : (isDark
                           ? AppColors.darkBorder.withValues(alpha: 0.5)
                           : const Color(0xFFE2E8F0)),
-                backgroundImage:
-                    staff.avatarPath != null &&
-                        File(staff.avatarPath!).existsSync()
-                    ? FileImage(File(staff.avatarPath!))
-                    : null,
-                child:
-                    staff.avatarPath == null ||
-                        !File(staff.avatarPath!).existsSync()
+                backgroundImage: _buildAvatarProvider(staff),
+                child: _buildAvatarProvider(staff) == null
                     ? Text(
                         initials,
                         style: TextStyle(

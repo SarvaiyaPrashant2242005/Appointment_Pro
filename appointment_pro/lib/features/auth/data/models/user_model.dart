@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import '../../../../core/constants/api_endpoints.dart';
+
 class UserModel {
   final String id;
   final String fullName;
@@ -22,6 +26,23 @@ class UserModel {
     this.createdAt,
     this.updatedAt,
   });
+
+  /// Resolves avatar URL (prepending server origin if relative server path, or returning local path if it exists on disk)
+  String? get fullAvatarUrl {
+    if (avatarUrl == null || avatarUrl!.trim().isEmpty) return null;
+    final path = avatarUrl!.trim();
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    final file = File(path);
+    if (file.existsSync()) {
+      return path;
+    }
+    if (path.startsWith('/')) {
+      return '${ApiEndpoints.baseOrigin}$path';
+    }
+    return '${ApiEndpoints.baseOrigin}/$path';
+  }
 
   UserModel copyWith({
     String? id,

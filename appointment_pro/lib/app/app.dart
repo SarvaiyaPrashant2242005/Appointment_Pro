@@ -5,6 +5,7 @@ import 'package:toastification/toastification.dart';
 
 import '../core/services/fcm_service.dart';
 import '../core/services/local_notification_service.dart';
+import '../features/auth/data/repositories/auth_repository.dart';
 import '../features/bookings/presentation/providers/booking_provider.dart';
 import '../features/bussiness_setup/presentation/providers/business_provider.dart';
 import '../features/notifications/presentation/providers/notification_provider.dart';
@@ -19,15 +20,18 @@ class AppointmentProApp extends ConsumerStatefulWidget {
   ConsumerState<AppointmentProApp> createState() => _AppointmentProAppState();
 }
 
-class _AppointmentProAppState extends ConsumerState<AppointmentProApp> {
+class _AppointmentProAppState extends ConsumerState<AppointmentProApp>
+    with WidgetsBindingObserver {
   StreamSubscription<String>? _tapSub;
   StreamSubscription<dynamic>? _msgSub;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _setupFcmListeners();
     _setupLocalNotificationTap();
+    _registerFcmTokenWithServer();
   }
 
   void _setupLocalNotificationTap() {
@@ -53,11 +57,40 @@ class _AppointmentProAppState extends ConsumerState<AppointmentProApp> {
 
     _msgSub = FcmService.instance.messageStream.listen((_) {
       ref.read(notificationsProvider.notifier).refresh();
+      ref.read(bookingsProvider.notifier).refresh();
     });
+
+    FcmService.instance.onTokenRefreshCallback = (newToken) {
+      _saveTokenToServer(newToken);
+    };
+  }
+
+  void _registerFcmTokenWithServer() {
+    final token = FcmService.instance.fcmToken;
+    if (token != null && token.isNotEmpty) {
+      _saveTokenToServer(token);
+    }
+  }
+
+  Future<void> _saveTokenToServer(String token) async {
+    try {
+      await ref.read(authRepositoryProvider).saveFcmToken(token);
+    } catch (_) {}
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh live bookings, notifications, and device token when returning to foreground
+      ref.read(bookingsProvider.notifier).refresh();
+      ref.read(notificationsProvider.notifier).refresh();
+      _registerFcmTokenWithServer();
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tapSub?.cancel();
     _msgSub?.cancel();
     super.dispose();
@@ -74,6 +107,7 @@ class _AppointmentProAppState extends ConsumerState<AppointmentProApp> {
     ref.listen<String?>(activeBusinessIdProvider, (previous, next) {
       if (next != null && next.isNotEmpty) {
         FcmService.instance.subscribeToBusiness(next);
+        _registerFcmTokenWithServer();
       }
     });
 

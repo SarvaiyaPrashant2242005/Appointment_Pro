@@ -138,7 +138,48 @@ async function sendMulticastNotification({ tokens, title, body, data = {} }) {
     }
 }
 
+
+/**
+ * Sends a push notification to an FCM topic (e.g. business_{businessId})
+ */
+async function sendTopicNotification({ topic, title, body, data = {} }) {
+    if (!topic || !isFirebaseInitialized) return null;
+
+    const stringData = {};
+    for (const [key, value] of Object.entries(data)) {
+        stringData[key] = value !== null && value !== undefined ? String(value) : '';
+    }
+
+    const cleanTopic = topic.trim().replace(/[^a-zA-Z0-9-_.~%]/g, '_');
+    const message = {
+        topic: cleanTopic,
+        notification: {
+            title: title || 'AppointmentPro',
+            body: body || '',
+        },
+        data: stringData,
+        android: {
+            priority: 'high',
+            notification: {
+                sound: 'default',
+                channelId: 'booking_alerts',
+            },
+        },
+    };
+
+    try {
+        const messaging = getMessaging();
+        const response = await messaging.send(message);
+        console.log(`✅ FCM topic push sent to "${cleanTopic}": ${response}`);
+        return { success: true, messageId: response };
+    } catch (err) {
+        console.warn(`⚠️ FCM topic notification notice for "${cleanTopic}": ${err.message}`);
+        return { success: false, error: err.message };
+    }
+}
+
 module.exports = {
+    sendTopicNotification,
     getFirebaseApp: () => firebaseApp,
     isFirebaseInitialized: () => isFirebaseInitialized,
     sendPushNotification,

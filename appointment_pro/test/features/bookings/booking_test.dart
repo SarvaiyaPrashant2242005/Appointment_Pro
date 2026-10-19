@@ -201,6 +201,44 @@ void main() {
       expect(url, contains('glow-beauty-spa-1791'));
     });
 
+    test('normalizes internal/local server URLs to production domain', () {
+      final bizWithLocalUrl = BusinessModel(
+        id: 'd8cea7d1-292c-4fbc-ac89-bed16ab371b0',
+        name: 'JP Tech Class',
+        type: 'Education & Teaching',
+        slug: 'jp-tech-class-5882',
+        bookingUrl:
+            'http://172.28.0.3:5000/jp-tech-class-5882/d8cea7d1-292c-4fbc-ac89-bed16ab371b0',
+        createdAt: DateTime.now(),
+      );
+
+      final url = BookingSlugHelper.buildBookingUrl(bizWithLocalUrl);
+      expect(
+        url,
+        equals(
+          'https://appointment-pro.rishvi.app/jp-tech-class-5882/d8cea7d1-292c-4fbc-ac89-bed16ab371b0',
+        ),
+      );
+
+      final apexMedico = BusinessModel(
+        id: '9b8cb716-755a-4a73-af62-3a72e13079ec',
+        name: 'Apex Medico',
+        type: 'Healthcare & Clinic',
+        slug: 'apex-medico-6485',
+        bookingUrl:
+            'http://172.28.0.3:5000/apex-medico-6485/9b8cb716-755a-4a73-af62-3a72e13079ec',
+        createdAt: DateTime.now(),
+      );
+
+      final apexUrl = BookingSlugHelper.buildBookingUrl(apexMedico);
+      expect(
+        apexUrl,
+        equals(
+          'https://appointment-pro.rishvi.app/apex-medico-6485/9b8cb716-755a-4a73-af62-3a72e13079ec',
+        ),
+      );
+    });
+
     test('matches business by exact id or slug correctly', () {
       final slug = BookingSlugHelper.generateSlug(business);
       expect(BookingSlugHelper.matchesSlugOrId(business, 'biz-1791'), isTrue);

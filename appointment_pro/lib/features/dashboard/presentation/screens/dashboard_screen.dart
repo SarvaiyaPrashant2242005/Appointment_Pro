@@ -608,17 +608,32 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   static Widget _buildBusinessAvatarContent(BusinessModel? business) {
-    if (business?.logoPath != null && business!.logoPath!.isNotEmpty) {
-      final file = File(business.logoPath!);
-      return ClipOval(
-        child: Image.file(
-          file,
-          width: 34,
-          height: 34,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _buildFallbackInitial(business),
-        ),
-      );
+    if (business == null) return _buildFallbackInitial(business);
+    final fullUrl = business.fullLogoUrl;
+    if (fullUrl != null && fullUrl.isNotEmpty) {
+      final file = File(fullUrl);
+      if (file.existsSync()) {
+        return ClipOval(
+          child: Image.file(
+            file,
+            width: 34,
+            height: 34,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => _buildFallbackInitial(business),
+          ),
+        );
+      }
+      if (fullUrl.startsWith('http://') || fullUrl.startsWith('https://')) {
+        return ClipOval(
+          child: Image.network(
+            fullUrl,
+            width: 34,
+            height: 34,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => _buildFallbackInitial(business),
+          ),
+        );
+      }
     }
     return _buildFallbackInitial(business);
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -653,7 +654,86 @@ final bookingWebSocketSyncProvider = Provider<void>((ref) {
     }
   });
 
+  // Active live-sync polling (every 7 seconds)
+  // Ensures new public bookings appear instantly without needing to close and reopen the app
+  Timer? pollTimer;
+  if (activeBusinessId != null && activeBusinessId.isNotEmpty) {
+    pollTimer = Timer.periodic(const Duration(seconds: 7), (_) async {
+      try {
+        final currentList = ref.read(bookingsProvider).asData?.value;
+        if (currentList == null) return;
+
+        final repo = ref.read(bookingRepositoryProvider);
+        final freshList = await repo.getBookings(activeBusinessId);
+
+        final existingIds = currentList.map((b) => b.id).toSet();
+        final existingRefs = currentList
+            .where((b) => b.bookingReference != null && b.bookingReference!.isNotEmpty)
+            .map((b) => b.bookingReference!)
+            .toSet();
+
+        for (final fresh in freshList) {
+          final isNew = !existingIds.contains(fresh.id) &&
+              (fresh.bookingReference == null ||
+                  !existingRefs.contains(fresh.bookingReference));
+          if (isNew) {
+            await ref
+                .read(bookingsProvider.notifier)
+                .onLiveBookingCreated(fresh);
+
+            final dateFormat = DateFormat('EEE, MMM d · h:mm a');
+            final dateStr = dateFormat.format(fresh.startAt);
+            final notifTitle = '🎉 New Appointment Booked!';
+            final notifBody =
+                '${fresh.customerName} booked ${fresh.serviceName ?? "an appointment"} for $dateStr. Ref: ${fresh.displayId}';
+
+            LocalNotificationService.instance.showBookingNotification(
+              bookingId: fresh.id,
+              title: notifTitle,
+              body: notifBody,
+              payload: fresh.id,
+            );
+
+            final appNotif = AppNotificationModel(
+              id: 'notif_${DateTime.now().millisecondsSinceEpoch}_${fresh.id}',
+              businessId: fresh.businessId,
+              bookingId: fresh.id,
+              type: NotificationType.newBooking,
+              title: notifTitle,
+              body: notifBody,
+              customerName: fresh.customerName,
+              serviceName: fresh.serviceName ?? 'Service',
+              startAt: fresh.startAt,
+              endAt: fresh.endAt,
+              createdAt: DateTime.now(),
+              isRead: false,
+              metadata: {
+                'displayId': fresh.displayId,
+                'source': 'live_sync',
+              },
+            );
+            ref
+                .read(notificationsProvider.notifier)
+                .onNotificationReceived(appNotif);
+
+            ref.read(latestLiveBookingAlertProvider.notifier).state =
+                LiveBookingAlert(
+              title: notifTitle,
+              message: notifBody,
+              booking: fresh,
+              eventType: 'booking:created',
+              timestamp: DateTime.now(),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('[LiveSync] Polling check: $e');
+      }
+    });
+  }
+
   ref.onDispose(() {
     subscription.cancel();
+    pollTimer?.cancel();
   });
 });

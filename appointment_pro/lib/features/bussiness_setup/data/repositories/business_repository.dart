@@ -51,7 +51,8 @@ class BusinessRepository {
         logoPath != null &&
         !logoPath.startsWith('http://') &&
         !logoPath.startsWith('https://') &&
-        !logoPath.startsWith('/') &&
+        !logoPath.startsWith('/uploads/') &&
+        !logoPath.startsWith('uploads/') &&
         File(logoPath).existsSync();
 
     if (hasLocalLogo) {
@@ -78,7 +79,8 @@ class BusinessRepository {
         logoPath != null &&
         !logoPath.startsWith('http://') &&
         !logoPath.startsWith('https://') &&
-        !logoPath.startsWith('/') &&
+        !logoPath.startsWith('/uploads/') &&
+        !logoPath.startsWith('uploads/') &&
         File(logoPath).existsSync();
 
     final endpoint = ApiEndpoints.businessById(business.id);

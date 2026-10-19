@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../services/presentation/providers/service_provider.dart';
 import '../../../services/presentation/widgets/service_form_sheet.dart';
@@ -71,6 +72,22 @@ class _StaffFormState extends ConsumerState<StaffForm> {
     }
   }
 
+  ImageProvider? _buildAvatarImageProvider() {
+    if (_avatarPath == null || _avatarPath!.trim().isEmpty) return null;
+    final path = _avatarPath!.trim();
+    final file = File(path);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    if (path.startsWith('/')) {
+      return NetworkImage('${ApiEndpoints.baseOrigin}$path');
+    }
+    return NetworkImage('${ApiEndpoints.baseOrigin}/$path');
+  }
+
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -124,12 +141,8 @@ class _StaffFormState extends ConsumerState<StaffForm> {
                     backgroundColor: isDark
                         ? AppColors.darkInputFill
                         : AppColors.inputFill,
-                    backgroundImage:
-                        _avatarPath != null && File(_avatarPath!).existsSync()
-                        ? FileImage(File(_avatarPath!))
-                        : null,
-                    child:
-                        _avatarPath == null || !File(_avatarPath!).existsSync()
+                    backgroundImage: _buildAvatarImageProvider(),
+                    child: _buildAvatarImageProvider() == null
                         ? const Icon(
                             Icons.person_add_outlined,
                             size: 32,

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
@@ -86,6 +89,46 @@ class AuthRemoteDataSource {
 
   Future<UserModel> getProfile() async {
     final response = await _apiClient.get(ApiEndpoints.me);
+    final data = response['data'] is Map<String, dynamic>
+        ? response['data'] as Map<String, dynamic>
+        : response;
+    final userData = data['user'] is Map<String, dynamic>
+        ? data['user'] as Map<String, dynamic>
+        : data;
+    return UserModel.fromJson(userData);
+  }
+
+  Future<UserModel> updateProfile({
+    String? fullName,
+    String? phone,
+    String? avatarPath,
+  }) async {
+    dynamic requestData;
+    final hasLocalAvatar = avatarPath != null &&
+        !avatarPath.startsWith('http://') &&
+        !avatarPath.startsWith('https://') &&
+        !avatarPath.startsWith('/uploads/') &&
+        !avatarPath.startsWith('uploads/') &&
+        File(avatarPath).existsSync();
+
+    if (hasLocalAvatar) {
+      final fileName = avatarPath.split(RegExp(r'[/\\]')).last;
+      requestData = FormData.fromMap({
+        if (fullName != null && fullName.trim().isNotEmpty)
+          'fullName': fullName.trim(),
+        if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+        'avatar': await MultipartFile.fromFile(avatarPath, filename: fileName),
+      });
+    } else {
+      requestData = {
+        if (fullName != null && fullName.trim().isNotEmpty)
+          'fullName': fullName.trim(),
+        if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+      };
+    }
+
+    final response =
+        await _apiClient.put(ApiEndpoints.profile, data: requestData);
     final data = response['data'] is Map<String, dynamic>
         ? response['data'] as Map<String, dynamic>
         : response;

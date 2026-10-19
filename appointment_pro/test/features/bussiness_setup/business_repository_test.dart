@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:appointment_pro/core/constants/api_endpoints.dart';
 import 'package:appointment_pro/core/services/api_client.dart';
 import 'package:appointment_pro/features/bussiness_setup/data/models/business_model.dart';
 import 'package:appointment_pro/features/bussiness_setup/data/repositories/business_repository.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class MockApiClient implements ApiClient {
@@ -196,6 +199,41 @@ void main() {
 
       expect(mockApi.lastDeletePath, ApiEndpoints.businessById('b_delete'));
       expect(list.isEmpty, isTrue);
+    });
+
+    test('createBusiness sends FormData with logo when logoPath is a local file', () async {
+      final tempDir = Directory.systemTemp.createTempSync('biz_logo_test');
+      final tempFile = File('${tempDir.path}/test_logo.png');
+      tempFile.writeAsBytesSync([1, 2, 3, 4]);
+
+      mockApi.getResponse = {
+        'data': [
+          {
+            'id': 'b_logo',
+            'name': 'Logo Biz',
+            'type': 'Tech',
+            'logo_url': '/uploads/logos/test_logo.png',
+            'is_active': true,
+            'created_at': '2026-01-01T00:00:00.000Z',
+          },
+        ],
+      };
+
+      final bizWithLogo = BusinessModel(
+        id: '',
+        name: 'Logo Biz',
+        type: 'Tech',
+        logoPath: tempFile.path,
+        createdAt: DateTime.now(),
+      );
+
+      final list = await repo.createBusiness(bizWithLogo);
+
+      expect(mockApi.lastPostPath, ApiEndpoints.businesses);
+      expect(mockApi.lastPostData, isA<FormData>());
+      expect(list.first.logoPath, '/uploads/logos/test_logo.png');
+
+      tempDir.deleteSync(recursive: true);
     });
   });
 }

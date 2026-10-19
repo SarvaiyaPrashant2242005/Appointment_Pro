@@ -147,7 +147,8 @@ class StaffRepository {
           avatarPath != null &&
           !avatarPath.startsWith('http://') &&
           !avatarPath.startsWith('https://') &&
-          !avatarPath.startsWith('/') &&
+          !avatarPath.startsWith('/uploads/') &&
+          !avatarPath.startsWith('uploads/') &&
           File(avatarPath).existsSync();
 
       if (hasLocalAvatar) {
@@ -209,7 +210,8 @@ class StaffRepository {
           avatarPath != null &&
           !avatarPath.startsWith('http://') &&
           !avatarPath.startsWith('https://') &&
-          !avatarPath.startsWith('/') &&
+          !avatarPath.startsWith('/uploads/') &&
+          !avatarPath.startsWith('uploads/') &&
           File(avatarPath).existsSync();
 
       final endpoint = ApiEndpoints.staffById(staff.id);

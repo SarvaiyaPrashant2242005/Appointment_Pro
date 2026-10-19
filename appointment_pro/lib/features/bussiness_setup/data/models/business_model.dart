@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../../../core/constants/api_endpoints.dart';
 
 class BusinessModel {
@@ -44,10 +46,14 @@ class BusinessModel {
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return path;
     }
+    final file = File(path);
+    if (file.existsSync()) {
+      return path;
+    }
     if (path.startsWith('/')) {
       return '${ApiEndpoints.baseOrigin}$path';
     }
-    return path;
+    return '${ApiEndpoints.baseOrigin}/$path';
   }
 
   BusinessModel copyWith({

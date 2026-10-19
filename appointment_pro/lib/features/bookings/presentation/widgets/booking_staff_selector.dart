@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -14,6 +16,19 @@ class BookingStaffSelector extends StatelessWidget {
     required this.selectedStaff,
     required this.onSelect,
   });
+
+  ImageProvider? _buildStaffSelectorAvatar(StaffModel staff) {
+    final fullUrl = staff.fullAvatarUrl;
+    if (fullUrl == null || fullUrl.isEmpty) return null;
+    final file = File(fullUrl);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+    if (fullUrl.startsWith('http://') || fullUrl.startsWith('https://')) {
+      return NetworkImage(fullUrl);
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -177,17 +192,20 @@ class BookingStaffSelector extends StatelessWidget {
                       backgroundColor: isDark
                           ? AppColors.darkBorder
                           : AppColors.border,
-                      child: Text(
-                        staff.name.isNotEmpty
-                            ? staff.name.substring(0, 1).toUpperCase()
-                            : 'S',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? AppColors.darkTextPrimary
-                              : AppColors.textPrimary,
-                        ),
-                      ),
+                      backgroundImage: _buildStaffSelectorAvatar(staff),
+                      child: _buildStaffSelectorAvatar(staff) == null
+                          ? Text(
+                              staff.name.isNotEmpty
+                                  ? staff.name.substring(0, 1).toUpperCase()
+                                  : 'S',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.textPrimary,
+                              ),
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 14),
                     Expanded(

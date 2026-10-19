@@ -1,5 +1,5 @@
 const { UserFcmToken } = require('../users');
-const { sendPushNotification, sendMulticastNotification, isFirebaseInitialized } = require('../../config/firebase');
+const { sendPushNotification, sendMulticastNotification, sendTopicNotification, isFirebaseInitialized } = require('../../config/firebase');
 
 class NotificationService {
     /**
@@ -122,19 +122,14 @@ class NotificationService {
      */
     async sendBookingNotification(userId, { booking, business, type = 'booking_created' }) {
         try {
-            const tokens = await this.getUserTokens(userId);
-            if (!tokens || !tokens.length) {
-                console.log(`ℹ️ [FCM] No active device tokens found for user ${userId}. Skipping push notification.`);
-                return null;
-            }
-
             const raw = booking.toClientJSON ? booking.toClientJSON() : booking;
             const refCode = raw.bookingReference || raw.booking_reference || raw.id;
             const custName = raw.customerName || raw.customer_name || 'A customer';
             const srvName = raw.serviceName || raw.service_name || 'Appointment';
+            const bizId = String(raw.businessId || raw.business_id || business?.id || '');
 
-            let title = '📅 New Appointment Booked!';
-            if (type === 'booking_rescheduled') title = '🔄 Appointment Rescheduled';
+            let title = '🎉 New Appointment Booked!';
+            if (type === 'booking_rescheduled') title = '🗓️ Appointment Rescheduled';
             if (type === 'booking_cancelled') title = '❌ Appointment Cancelled';
 
             const dateStr = new Date(raw.startAt || raw.start_at).toLocaleString('en-US', {
@@ -148,22 +143,47 @@ class NotificationService {
 
             const body = `${custName} booked ${srvName} on ${dateStr}. Ref: ${refCode}`;
 
-            const result = await sendMulticastNotification({
-                tokens,
-                title,
-                body,
-                data: {
-                    type,
-                    bookingId: String(refCode),
-                    businessId: String(raw.businessId || raw.business_id || ''),
-                    customerName: String(custName),
-                    serviceName: String(srvName),
-                    click_action: 'FLUTTER_NOTIFICATION_CLICK',
-                },
-            });
+            const payloadData = {
+                type,
+                bookingId: String(refCode),
+                businessId: bizId,
+                customerName: String(custName),
+                serviceName: String(srvName),
+                click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            };
 
-            console.log(`✅ [FCM] Sent ${type} notification to user ${userId} on ${tokens.length} device(s)`);
-            return result;
+            // 1. Always dispatch to business topic so subscribed owner devices receive it
+            if (bizId) {
+                const topic = `business_${bizId}`.replace(/[^a-zA-Z0-9-_.~%]/g, '_');
+                try {
+                    await sendTopicNotification({
+                        topic,
+                        title,
+                        body,
+                        data: payloadData,
+                    });
+                } catch (topErr) {
+                    console.warn('[FCM] Topic notification notice:', topErr.message);
+                }
+            }
+
+            // 2. Also send to registered individual device tokens
+            const tokens = await this.getUserTokens(userId);
+            if (tokens && tokens.length) {
+                try {
+                    await sendMulticastNotification({
+                        tokens,
+                        title,
+                        body,
+                        data: payloadData,
+                    });
+                    console.log(`✅ [FCM] Sent ${type} multicast to user ${userId} on ${tokens.length} device(s)`);
+                } catch (mErr) {
+                    console.warn('[FCM] Multicast notification notice:', mErr.message);
+                }
+            }
+
+            return { success: true };
         } catch (err) {
             console.error('⚠️ [FCM] Push notification error:', err.message);
             return null;

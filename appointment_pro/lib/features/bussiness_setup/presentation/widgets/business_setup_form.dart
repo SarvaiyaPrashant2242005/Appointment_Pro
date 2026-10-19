@@ -130,21 +130,8 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
       );
     }
     final path = _logoPath!.trim();
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return Image.network(
-        path,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 32),
-      );
-    }
-    if (path.startsWith('/')) {
-      final fullUrl = '${ApiEndpoints.baseOrigin}$path';
-      return Image.network(
-        fullUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 32),
-      );
-    }
+
+    // 1. Check if it's a local file on device (e.g. freshly picked image)
     final file = File(path);
     if (file.existsSync()) {
       return Image.file(
@@ -153,6 +140,26 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
         errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 32),
       );
     }
+
+    // 2. Check if it's a full network URL
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 32),
+      );
+    }
+
+    // 3. Check if it's a server relative path (e.g. /uploads/logos/...)
+    if (path.startsWith('/')) {
+      final fullUrl = '${ApiEndpoints.baseOrigin}$path';
+      return Image.network(
+        fullUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.business, size: 32),
+      );
+    }
+
     return const Icon(Icons.business, size: 32);
   }
 

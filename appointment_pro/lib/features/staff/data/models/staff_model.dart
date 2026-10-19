@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../availability/data/models/availability_model.dart';
 
 class StaffModel {
@@ -27,6 +30,23 @@ class StaffModel {
     DateTime? updatedAt,
   }) : createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
+
+  /// Resolves avatar URL (prepending server origin if relative server path, or returning local path if it exists on disk)
+  String? get fullAvatarUrl {
+    if (avatarPath == null || avatarPath!.trim().isEmpty) return null;
+    final path = avatarPath!.trim();
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    final file = File(path);
+    if (file.existsSync()) {
+      return path;
+    }
+    if (path.startsWith('/')) {
+      return '${ApiEndpoints.baseOrigin}$path';
+    }
+    return '${ApiEndpoints.baseOrigin}/$path';
+  }
 
   StaffModel copyWith({
     String? id,

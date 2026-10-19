@@ -15,12 +15,12 @@ class ApiEndpoints {
       return _customBaseUrl!;
     }
     if (kIsWeb) {
-      return 'http://192.168.1.5:5000/api/v1';
+      return 'https://appointment-pro.rishvi.app/api/v1';
     }
     if (Platform.isAndroid) {
-      return 'http://192.168.1.5:5000/api/v1';
+      return 'https://appointment-pro.rishvi.app/api/v1';
     }
-    return 'http://192.168.1.5:5000/api/v1';
+    return 'https://appointment-pro.rishvi.app/api/v1';
   }
 
   // Auth endpoints
@@ -78,8 +78,7 @@ class ApiEndpoints {
   static const String operatingHours = '/availability/operating-hours';
   static String availabilityToggle(int dayOfWeek) =>
       '/availability/operating-hours/$dayOfWeek/toggle';
-  static String availabilityPublic(String slug) =>
-      '/availability/public/$slug';
+  static String availabilityPublic(String slug) => '/availability/public/$slug';
 
   // Bookings endpoints
   static const String bookings = '/bookings';

@@ -39,6 +39,9 @@ function getLocalIpAddress() {
  * Returns dynamic base URL for local LAN access
  */
 function getNetworkBaseUrl(port = 5000) {
+    if (process.env.PUBLIC_URL && process.env.PUBLIC_URL.trim()) {
+        return process.env.PUBLIC_URL.trim().replace(/\/+$/, '');
+    }
     const ip = getLocalIpAddress();
     return `http://${ip}:${port}`;
 }

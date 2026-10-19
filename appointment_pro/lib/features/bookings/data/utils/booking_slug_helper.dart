@@ -4,14 +4,15 @@ class BookingSlugHelper {
   BookingSlugHelper._();
 
   /// The public booking domain for AppointmentPro.
-  /// Note: In the local prototype, customer public booking routes are previewed inside
-  /// the app via GoRouter (/book/:businessSlug). A live public URL accessible
-  /// without the app requires deploying a web frontend.
-  static const String publicBookingBaseUrl = 'https://appointmentpro.app/book';
+  static const String publicBookingBaseUrl = 'https://appointment-pro.rishvi.app';
 
   /// Generates a clean, URL-safe slug from business name and ID.
   /// Example: "Apex Wellness Center" -> "apex-wellness-center-1791"
   static String generateSlug(BusinessModel business) {
+    if (business.slug != null && business.slug!.trim().isNotEmpty) {
+      return business.slug!.trim();
+    }
+
     final cleanName = business.name
         .trim()
         .toLowerCase()
@@ -30,19 +31,39 @@ class BookingSlugHelper {
   }
 
   /// Builds the complete shareable booking URL for a business.
-  /// Prioritizes the dynamic network URL from the backend server so QR scanning works across devices.
+  /// Normalizes any server host or local IP to the public production domain.
   static String buildBookingUrl(BusinessModel business) {
+    final base = publicBookingBaseUrl.endsWith('/')
+        ? publicBookingBaseUrl.substring(0, publicBookingBaseUrl.length - 1)
+        : publicBookingBaseUrl;
+
     if (business.bookingUrl != null && business.bookingUrl!.trim().isNotEmpty) {
-      return business.bookingUrl!.trim();
+      final raw = business.bookingUrl!.trim();
+      final uri = Uri.tryParse(raw);
+      if (uri != null && uri.path.isNotEmpty && uri.path != '/') {
+        final path = uri.path.startsWith('/') ? uri.path : '/${uri.path}';
+        final query = uri.hasQuery ? '?${uri.query}' : '';
+        return '$base$path$query';
+      }
     }
+
     final slug = generateSlug(business);
-    return '$publicBookingBaseUrl/$slug';
+    final businessId = business.id.trim();
+    if (businessId.isNotEmpty) {
+      return '$base/$slug/$businessId';
+    }
+    return '$base/$slug';
   }
 
   /// Checks if a business matches a requested slug or ID.
   static bool matchesSlugOrId(BusinessModel business, String query) {
     final q = query.trim().toLowerCase();
     if (business.id.toLowerCase() == q) return true;
+    if (business.slug != null &&
+        business.slug!.trim().isNotEmpty &&
+        business.slug!.trim().toLowerCase() == q) {
+      return true;
+    }
     if (generateSlug(business).toLowerCase() == q) return true;
 
     // Also match simple name slug without id suffix

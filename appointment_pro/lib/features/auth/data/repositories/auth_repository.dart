@@ -103,6 +103,20 @@ class AuthRepository {
     }
   }
 
+  Future<UserModel> updateProfile({
+    String? fullName,
+    String? phone,
+    String? avatarPath,
+  }) async {
+    final updatedUser = await _remote.updateProfile(
+      fullName: fullName,
+      phone: phone,
+      avatarPath: avatarPath,
+    );
+    await _storage.saveUserProfile(jsonEncode(updatedUser.toJson()));
+    return updatedUser;
+  }
+
   Future<void> logout([String? fcmToken]) async {
     if (fcmToken != null && fcmToken.isNotEmpty) {
       await _remote.removeFcmToken(fcmToken);

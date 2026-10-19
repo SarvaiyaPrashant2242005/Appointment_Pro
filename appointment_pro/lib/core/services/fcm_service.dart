@@ -79,6 +79,11 @@ class FcmService {
       try {
         _fcmToken = await _messaging!.getToken();
         debugPrint('FCM Registration Token: $_fcmToken');
+        if (_fcmToken != null) {
+          try {
+            onTokenRefreshCallback?.call(_fcmToken!);
+          } catch (_) {}
+        }
       } catch (e) {
         debugPrint('Error getting FCM token: $e');
       }

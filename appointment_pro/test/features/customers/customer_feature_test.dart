@@ -5,7 +5,6 @@ import 'package:appointment_pro/features/bussiness_setup/presentation/providers/
 import 'package:appointment_pro/features/customers/data/models/customer_model.dart';
 import 'package:appointment_pro/features/customers/data/repositories/customer_repository.dart';
 import 'package:appointment_pro/features/customers/presentation/providers/customer_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -265,9 +264,3 @@ class _FakeBookingsController extends BookingsController {
   Future<List<BookingModel>> build() async => [];
 }
 
-class _TestConsumer extends ConsumerWidget {
-  const _TestConsumer();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => const SizedBox();
-}
