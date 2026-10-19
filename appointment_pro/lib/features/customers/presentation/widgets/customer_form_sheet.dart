@@ -247,8 +247,16 @@ class _CustomerFormBottomSheetState
                               if (val == null || val.trim().isEmpty) {
                                 return 'Customer name is required';
                               }
-                              if (val.trim().length < 2) {
+                              final trimmed = val.trim();
+                              if (trimmed.length < 2) {
                                 return 'Name must be at least 2 characters';
+                              }
+                              if (trimmed.length > 100) {
+                                return 'Name cannot exceed 100 characters';
+                              }
+                              final nameRegex = RegExp(r"^[\p{L}\s.'-]+$", unicode: true);
+                              if (!nameRegex.hasMatch(trimmed)) {
+                                return 'Name should only contain letters, spaces, dots, or hyphens';
                               }
                               return null;
                             },
@@ -288,8 +296,26 @@ class _CustomerFormBottomSheetState
                                     if (val == null || val.trim().isEmpty) {
                                       return 'Phone number is required';
                                     }
-                                    if (val.trim().length < 7) {
-                                      return 'Please enter a valid phone number';
+                                    final digits = val.replaceAll(RegExp(r'\D'), '');
+                                    final code = _countryCodeController.text.trim();
+                                    if (code == '+91') {
+                                      if (digits.length != 10) {
+                                        return 'Indian number must be 10 digits (${digits.length}/10)';
+                                      }
+                                      if (!RegExp(r'^[6-9]').hasMatch(digits)) {
+                                        return 'Must start with 6, 7, 8, or 9';
+                                      }
+                                    } else if (code == '+1') {
+                                      if (digits.length != 10) {
+                                        return 'US/Canada number must be 10 digits (${digits.length}/10)';
+                                      }
+                                      if (digits.startsWith('0') || digits.startsWith('1')) {
+                                        return 'Cannot start with 0 or 1';
+                                      }
+                                    } else {
+                                      if (digits.length < 7 || digits.length > 15) {
+                                        return 'Enter between 7 and 15 digits';
+                                      }
                                     }
                                     return null;
                                   },
@@ -309,7 +335,7 @@ class _CustomerFormBottomSheetState
                             validator: (val) {
                               if (val != null && val.trim().isNotEmpty) {
                                 final emailRegex = RegExp(
-                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
                                 );
                                 if (!emailRegex.hasMatch(val.trim())) {
                                   return 'Enter a valid email address';

@@ -42,20 +42,124 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
   late final TextEditingController _emailController;
   late final TextEditingController _notesController;
 
-  String _countryCode = '+1';
+  String _countryCode = '+91';
 
   final List<String> _commonCountryCodes = [
+    '+91',
     '+1',
     '+44',
-    '+91',
     '+61',
+    '+971',
+    '+65',
     '+49',
     '+33',
     '+81',
     '+86',
-    '+971',
     '+353',
   ];
+
+  int get _maxPhoneDigits {
+    switch (_countryCode) {
+      case '+91':
+      case '+1':
+        return 10;
+      case '+971':
+        return 9;
+      case '+65':
+        return 8;
+      case '+44':
+      case '+61':
+        return 11;
+      default:
+        return 15;
+    }
+  }
+
+  String get _phoneHint {
+    switch (_countryCode) {
+      case '+91':
+        return '9876543210 (10 digits)';
+      case '+1':
+        return '2025550143 (10 digits)';
+      case '+971':
+        return '501234567 (9 digits)';
+      case '+65':
+        return '81234567 (8 digits)';
+      case '+44':
+        return '7911123456';
+      default:
+        return 'Mobile number';
+    }
+  }
+
+  String? _validateName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter your full name';
+    }
+    final trimmed = value.trim();
+    if (trimmed.length < 2) {
+      return 'Name must be at least 2 characters';
+    }
+    if (trimmed.length > 100) {
+      return 'Name cannot exceed 100 characters';
+    }
+    final nameRegex = RegExp(r"^[\p{L}\s.'-]+$", unicode: true);
+    if (!nameRegex.hasMatch(trimmed)) {
+      return 'Name should only contain letters, spaces, dots, or hyphens';
+    }
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter mobile phone number';
+    }
+    final digits = value.replaceAll(RegExp(r'\D'), '');
+    if (_countryCode == '+91') {
+      if (digits.length != 10) {
+        return 'Indian mobile numbers must be 10 digits (${digits.length}/10 entered)';
+      }
+      if (!RegExp(r'^[6-9]').hasMatch(digits)) {
+        return 'Indian numbers must start with 6, 7, 8, or 9';
+      }
+    } else if (_countryCode == '+1') {
+      if (digits.length != 10) {
+        return 'US/Canada number must be 10 digits (${digits.length}/10 entered)';
+      }
+      if (digits.startsWith('0') || digits.startsWith('1')) {
+        return 'US/Canada numbers cannot start with 0 or 1';
+      }
+    } else if (_countryCode == '+971') {
+      if (digits.length != 9) {
+        return 'UAE numbers must be 9 digits (${digits.length}/9 entered)';
+      }
+    } else if (_countryCode == '+65') {
+      if (digits.length != 8) {
+        return 'Singapore numbers must be 8 digits (${digits.length}/8 entered)';
+      }
+      if (!RegExp(r'^[89]').hasMatch(digits)) {
+        return 'Singapore numbers must start with 8 or 9';
+      }
+    } else {
+      if (digits.length < 7 || digits.length > 15) {
+        return 'Please enter between 7 and 15 digits';
+      }
+    }
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -66,7 +170,7 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
     _notesController = TextEditingController(text: widget.initialNotes ?? '');
     _countryCode = widget.initialCountryCode.isNotEmpty
         ? widget.initialCountryCode
-        : '+1';
+        : '+91';
   }
 
   @override
@@ -86,7 +190,7 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
     widget.onSubmit(
       name: _nameController.text.trim(),
       countryCode: _countryCode,
-      phone: _phoneController.text.trim(),
+      phone: _phoneController.text.replaceAll(RegExp(r'\D'), '').trim(),
       email: _emailController.text.trim().isEmpty
           ? null
           : _emailController.text.trim(),
@@ -113,22 +217,14 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
             controller: _nameController,
             isRequired: true,
             prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter your full name';
-              }
-              if (value.trim().length < 2) {
-                return 'Name must be at least 2 characters';
-              }
-              return null;
-            },
+            validator: _validateName,
           ),
           const SizedBox(height: 16),
 
           // Phone Number with Country Code
           Text.rich(
             TextSpan(
-              text: 'Phone Number',
+              text: 'Mobile Phone Number',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -166,7 +262,7 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
                   child: DropdownButton<String>(
                     value: _commonCountryCodes.contains(_countryCode)
                         ? _countryCode
-                        : '+1',
+                        : '+91',
                     dropdownColor: isDark
                         ? AppColors.darkSurface
                         : AppColors.surface,
@@ -188,7 +284,14 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) {
-                        setState(() => _countryCode = val);
+                        setState(() {
+                          _countryCode = val;
+                          final max = _maxPhoneDigits;
+                          final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
+                          if (digits.length > max) {
+                            _phoneController.text = digits.substring(0, max);
+                          }
+                        });
                       }
                     },
                   ),
@@ -202,10 +305,10 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
                   keyboardType: TextInputType.phone,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(14),
+                    LengthLimitingTextInputFormatter(_maxPhoneDigits),
                   ],
                   decoration: InputDecoration(
-                    hintText: '555 123 4567',
+                    hintText: _phoneHint,
                     prefixIcon: const Icon(Icons.phone_outlined, size: 20),
                     filled: true,
                     fillColor: isDark
@@ -235,15 +338,7 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
                       ),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter phone number';
-                    }
-                    if (value.trim().length < 6) {
-                      return 'Enter at least 6 digits';
-                    }
-                    return null;
-                  },
+                  validator: _validatePhone,
                 ),
               ),
             ],
@@ -257,16 +352,7 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             prefixIcon: const Icon(Icons.email_outlined, size: 20),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return null;
-              }
-              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-              if (!emailRegex.hasMatch(value.trim())) {
-                return 'Please enter a valid email address';
-              }
-              return null;
-            },
+            validator: _validateEmail,
           ),
           const SizedBox(height: 16),
 
@@ -276,7 +362,7 @@ class _CustomerDetailsFormState extends State<CustomerDetailsForm> {
             hint: 'Any specific instructions or preferences...',
             controller: _notesController,
             keyboardType: TextInputType.multiline,
-            maxLength: 300,
+            maxLength: 500,
             prefixIcon: const Icon(Icons.note_alt_outlined, size: 20),
           ),
           const SizedBox(height: 24),
