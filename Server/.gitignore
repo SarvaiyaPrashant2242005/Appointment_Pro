@@ -2,4 +2,3 @@ node_modules
 .env
 README.md
 schema.sql
-serviceAccountKey.json
