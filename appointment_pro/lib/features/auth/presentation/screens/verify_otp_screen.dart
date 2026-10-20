@@ -9,7 +9,14 @@ import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/errors/api_exception.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../bussiness_setup/data/models/business_model.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
+import '../../../availability/presentation/providers/availability_provider.dart';
+import '../../../bookings/presentation/providers/booking_provider.dart';
+import '../../../customers/presentation/providers/customer_provider.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../services/presentation/providers/service_provider.dart';
+import '../../../staff/presentation/providers/staff_provider.dart';
 import '../../../../core/services/fcm_service.dart';
 import '../providers/otp_provider.dart';
 
@@ -108,12 +115,22 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
           'Email verified successfully! Welcome to AppointmentPro.';
       AppToast.success(context, successMessage);
 
-      ref.invalidate(businessProvider);
-      // Check whether user has existing businesses or needs setup
-      final businesses =
-          await ref.read(businessRepositoryProvider).getBusinesses();
+      // Fetch fresh businesses and populate businessProvider directly
+      List<BusinessModel> businesses = [];
+      try {
+        businesses = await ref.read(businessProvider.notifier).fetchFresh();
+      } catch (_) {
+        businesses = ref.read(businessProvider).value ?? [];
+      }
 
       if (!mounted) return;
+
+      ref.invalidate(bookingsProvider);
+      ref.invalidate(availabilityProvider);
+      ref.invalidate(servicesProvider);
+      ref.invalidate(staffProvider);
+      ref.invalidate(customersProvider);
+      ref.invalidate(notificationsProvider);
 
       if (businesses.isEmpty) {
         context.go('${AppRouter.businessSetup}?mandatory=true');

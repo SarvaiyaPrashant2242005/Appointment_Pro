@@ -11,9 +11,16 @@ import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/services/fcm_service.dart';
+import '../../../../core/services/websocket_service.dart';
 import '../../../auth/data/repositories/auth_repository.dart';
 import '../../../auth/presentation/providers/register_provider.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
+import '../../../availability/presentation/providers/availability_provider.dart';
+import '../../../bookings/presentation/providers/booking_provider.dart';
+import '../../../customers/presentation/providers/customer_provider.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../services/presentation/providers/service_provider.dart';
+import '../../../staff/presentation/providers/staff_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -31,8 +38,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (!context.mounted) return;
     final fcmToken = FcmService.instance.fcmToken;
+
+    // Disconnect active socket
+    ref.read(webSocketServiceProvider).disconnect();
+
     await ref.read(authRepositoryProvider).logout(fcmToken);
-    ref.invalidate(businessProvider);
+
+    // Cleanly clear business state and invalidate all user-scoped providers
+    ref.read(businessProvider.notifier).clear();
+    ref.invalidate(bookingsProvider);
+    ref.invalidate(availabilityProvider);
+    ref.invalidate(servicesProvider);
+    ref.invalidate(staffProvider);
+    ref.invalidate(customersProvider);
+    ref.invalidate(notificationsProvider);
 
     if (!context.mounted) return;
     AppToast.info(context, 'Logged out successfully');

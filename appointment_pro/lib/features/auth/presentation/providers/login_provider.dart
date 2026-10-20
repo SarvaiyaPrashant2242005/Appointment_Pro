@@ -41,18 +41,19 @@ class LoginController extends Notifier<LoginState> {
       state = LoginState(successMessage: messageToShow);
       return messageToShow;
     } catch (e) {
-      final isVerificationRequired = (e is ApiException && e.requiresVerification) ||
-          (e is ApiException &&
-              (e.messageToShow.toLowerCase().contains('not verified') ||
-                  e.message.toLowerCase().contains('not verified')));
+      if (e is ApiException) {
+        final isVerificationRequired = e.requiresVerification ||
+            e.messageToShow.toLowerCase().contains('not verified') ||
+            e.message.toLowerCase().contains('not verified');
 
-      if (isVerificationRequired) {
-        state = LoginState(
-          errorMessage: e is ApiException ? e.messageToShow : null,
-          requiresVerification: true,
-          unverifiedEmail: (e is ApiException ? e.email : null) ?? email,
-        );
-        rethrow;
+        if (isVerificationRequired) {
+          state = LoginState(
+            errorMessage: e.messageToShow,
+            requiresVerification: true,
+            unverifiedEmail: e.email ?? email,
+          );
+          rethrow;
+        }
       }
 
       final message = e is ApiException

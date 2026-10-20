@@ -9,6 +9,7 @@ import '../../../../core/services/network_service.dart';
 import '../../../../core/utils/app_toast.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/presentation/providers/register_provider.dart';
+import '../../../bussiness_setup/data/models/business_model.dart';
 import '../../../bussiness_setup/presentation/providers/business_provider.dart';
 import '../providers/splash_provider.dart';
 
@@ -66,9 +67,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (!mounted) return;
 
       if (isLoggedIn) {
-        final businesses = await ref
-            .read(businessRepositoryProvider)
-            .getBusinesses();
+        List<BusinessModel> businesses = [];
+        try {
+          businesses =
+              await ref.read(businessProvider.notifier).fetchFresh();
+        } catch (_) {
+          businesses = ref.read(businessProvider).value ?? [];
+        }
         if (!mounted) return;
 
         if (businesses.isEmpty) {

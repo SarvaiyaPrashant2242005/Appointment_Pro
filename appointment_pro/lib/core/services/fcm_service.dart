@@ -5,7 +5,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 import 'local_notification_service.dart';
-import '../../features/notifications/data/models/app_notification_model.dart';
 
 /// Top-level background message handler required by Firebase Messaging.
 @pragma('vm:entry-point')

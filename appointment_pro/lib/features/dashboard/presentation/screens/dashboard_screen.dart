@@ -16,6 +16,10 @@ import '../../../bussiness_setup/presentation/widgets/business_form_sheet.dart';
 import '../../../bookings/data/models/booking_model.dart';
 import '../../../bookings/presentation/providers/booking_provider.dart';
 import '../../../bookings/presentation/widgets/booking_card.dart';
+import '../../../services/presentation/providers/service_provider.dart';
+import '../../../staff/presentation/providers/staff_provider.dart';
+import '../../../customers/presentation/providers/customer_provider.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../../notifications/presentation/widgets/notification_badge_button.dart';
 import '../widgets/dashboard_drawer.dart';
 
@@ -27,6 +31,8 @@ class DashboardScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final storage = ref.read(localStorageServiceProvider);
+    final businessAsync = ref.watch(businessProvider);
+    final activeBusiness = ref.watch(activeBusinessProvider);
     final todayBookings = ref.watch(todayBookingsProvider);
     final pendingBookings = todayBookings
         .where((b) => b.status.isActive)
@@ -34,8 +40,53 @@ class DashboardScreen extends ConsumerWidget {
     final completedCount = todayBookings
         .where((b) => b.status == BookingStatus.completed)
         .length;
-    final activeBusiness = ref.watch(activeBusinessProvider);
     final availabilityAsync = ref.watch(availabilityProvider);
+
+    // If business is still loading its initial data, show centered loader
+    if (businessAsync.isLoading && businessAsync.value == null) {
+      return Scaffold(
+        drawer: const DashboardDrawer(),
+        appBar: AppBar(
+          title: const Text('Dashboard'),
+          centerTitle: false,
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu_rounded),
+              tooltip: 'Open Menu',
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+        ),
+        body: const Center(
+          child: AppLoader(message: 'Loading business details...'),
+        ),
+      );
+    }
+
+    // If loading businesses failed, show error view with retry
+    if (businessAsync.hasError &&
+        (businessAsync.value == null || businessAsync.value!.isEmpty)) {
+      return Scaffold(
+        drawer: const DashboardDrawer(),
+        appBar: AppBar(
+          title: const Text('Dashboard'),
+          centerTitle: false,
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu_rounded),
+              tooltip: 'Open Menu',
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+        ),
+        body: Center(
+          child: AppErrorView(
+            message: 'Unable to load businesses. Please pull to refresh.',
+            onRetry: () => ref.read(businessProvider.notifier).fetchFresh(),
+          ),
+        ),
+      );
+    }
 
     // Determine today's schedule (1 = Mon to 7 = Sun)
     final todayWeekday = DateTime.now().weekday;
@@ -62,9 +113,20 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(businessProvider.notifier).fetchFresh();
+          ref.invalidate(bookingsProvider);
+          ref.invalidate(availabilityProvider);
+          ref.invalidate(servicesProvider);
+          ref.invalidate(staffProvider);
+          ref.invalidate(customersProvider);
+          ref.invalidate(notificationsProvider);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // User Greeting Header
@@ -436,8 +498,9 @@ class DashboardScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildStateCards(
     BuildContext context,
