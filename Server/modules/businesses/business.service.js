@@ -178,6 +178,7 @@ class BusinessService {
             throw error;
         }
 
+        try { require('../websocket/websocket.service').registerBusinessMapping(business.id, business.slug); } catch (_) {}
         return {
             business: business.toClientJSON(),
             messageToShow: 'Business details retrieved successfully.',

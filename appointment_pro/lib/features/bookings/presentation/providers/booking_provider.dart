@@ -455,9 +455,19 @@ final bookingWebSocketSyncProvider = Provider<void>((ref) {
   final wsService = ref.watch(webSocketServiceProvider);
   final activeBusinessId = ref.watch(activeBusinessIdProvider);
 
+  debugPrint('[WebSocketSync] 🔄 Sync initialized. Active Business ID: $activeBusinessId');
+
   if (activeBusinessId != null && activeBusinessId.isNotEmpty) {
+    debugPrint('[WebSocketSync] 🔌 Requesting WebSocket connection for business: $activeBusinessId');
     wsService.connect(businessId: activeBusinessId);
+  } else {
+    debugPrint('[WebSocketSync] ⏳ No active business ID yet, WebSocket standing by...');
   }
+
+  // Monitor and log live connection status
+  final statusSubscription = wsService.statusStream.listen((status) {
+    debugPrint('[WebSocketSync] 📡 Socket Status Update: ${status.name.toUpperCase()} (Connected: ${status.isConnected})');
+  });
 
   // Listen to incoming WebSocket events
   final subscription = wsService.eventStream.listen((eventMap) {
@@ -465,10 +475,14 @@ final bookingWebSocketSyncProvider = Provider<void>((ref) {
     final businessId = eventMap['businessId']?.toString();
     final data = eventMap['data'];
 
+    debugPrint('[WebSocketSync] 📥 Incoming Event: "$event" (Payload business: $businessId, Active: $activeBusinessId)');
+
     // Only process events for current active business
     if (businessId != null &&
         activeBusinessId != null &&
-        businessId != activeBusinessId) {
+        businessId.trim().toLowerCase() !=
+            activeBusinessId.trim().toLowerCase()) {
+      debugPrint('[WebSocketSync] ⏭️ Skipping event for other business: $businessId');
       return;
     }
 
@@ -733,6 +747,8 @@ final bookingWebSocketSyncProvider = Provider<void>((ref) {
   }
 
   ref.onDispose(() {
+    debugPrint('[WebSocketSync] 🛑 Disposing sync subscriptions');
+    statusSubscription.cancel();
     subscription.cancel();
     pollTimer?.cancel();
   });

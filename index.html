@@ -3019,9 +3019,10 @@
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       let wsHost = window.location.host;
       if (!wsHost || wsHost.startsWith('file:') || wsHost === '') {
-        wsHost = 'localhost:5000';
+        wsHost = 'appointment-pro.rishvi.app';
       }
-      const wsUrl = `${protocol}//${wsHost}/ws`;
+      const bId = (bookingState.business && (bookingState.business.id || bookingState.businessSlug)) || '';
+      const wsUrl = `${protocol}//${wsHost}/ws${bId ? '?businessId=' + encodeURIComponent(bId) : ''}`;
 
       console.log(`[AppointmentPro WS] Connecting to ${wsUrl}...`);
       updateLiveBadgeState('connecting');

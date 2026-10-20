@@ -52,7 +52,7 @@ class ApiEndpoints {
     } else if (origin.startsWith('http://')) {
       return '${origin.replaceFirst('http://', 'ws://')}/ws';
     }
-    return 'ws://192.168.1.5:5000/ws';
+    return 'wss://appointment-pro.rishvi.app/ws';
   }
 
   // Businesses endpoints

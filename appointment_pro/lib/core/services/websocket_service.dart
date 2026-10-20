@@ -46,71 +46,141 @@ class WebSocketService {
   WebSocketStatus _status = WebSocketStatus.disconnected;
   WebSocketStatus get status => _status;
 
+  void _log(String message) {
+    debugPrint('[WebSocket] $message');
+  }
+
   /// Connect to WebSocket server and optionally subscribe to a business
   void connect({String? businessId}) {
-    if (_isDisposed) return;
+    if (_isDisposed) {
+      _log('⚠️ Cannot connect, service is disposed.');
+      return;
+    }
     if (businessId != null && businessId.isNotEmpty) {
       _currentBusinessId = businessId;
     }
 
-    if (_status == WebSocketStatus.connected ||
-        _status == WebSocketStatus.connecting) {
+    _log('⚡ connect() requested | Status: ${_status.name.toUpperCase()} | Business: ${_currentBusinessId ?? "None"}');
+
+    if (_status == WebSocketStatus.connected) {
+      _log('🟢 Already CONNECTED. Ensuring business room is subscribed...');
       if (businessId != null && businessId.isNotEmpty) {
         joinBusiness(businessId);
       }
       return;
     }
 
+    if (_status == WebSocketStatus.connecting) {
+      _log('🟡 Already in CONNECTING state. Business room "$businessId" will be joined upon connection.');
+      return;
+    }
+
     _status = WebSocketStatus.connecting;
     _statusController.add(_status);
+    _log('🟡 Status set to: CONNECTING');
 
     _doConnect();
   }
 
   Future<void> _doConnect() async {
+    final rawWsUrl = ApiEndpoints.wsUrl;
     try {
-      final wsUrl = ApiEndpoints.wsUrl;
-      debugPrint('[WebSocket] 🔌 Connecting to $wsUrl ...');
+      String wsUrl = rawWsUrl;
+      // Append query parameter ?businessId=... for instant room assignment on handshake
+      if (_currentBusinessId != null && _currentBusinessId!.isNotEmpty) {
+        final uri = Uri.parse(wsUrl);
+        final q = Map<String, String>.from(uri.queryParameters);
+        q['businessId'] = _currentBusinessId!;
+        wsUrl = uri.replace(queryParameters: q).toString();
+      }
 
-      _socket = await WebSocket.connect(wsUrl).timeout(
-        const Duration(seconds: 10),
+      _log('============================================================');
+      _log('🔌 [SOCKET CONNECTING]');
+      _log('   URL: $wsUrl');
+      _log('   Business ID: ${_currentBusinessId ?? "None"}');
+      _log('============================================================');
+
+      // Resilient client with SSL tolerance for various mobile devices and proxies
+      final client = HttpClient();
+      client.badCertificateCallback = (cert, host, port) => true;
+      client.connectionTimeout = const Duration(seconds: 10);
+
+      final socket = await WebSocket.connect(
+        wsUrl,
+        customClient: client,
+      ).timeout(
+        const Duration(seconds: 12),
       );
 
+      _socket = socket;
       _status = WebSocketStatus.connected;
       _statusController.add(_status);
-      debugPrint('[WebSocket] ✅ Connected successfully to $wsUrl');
 
-      // Subscribe to active business room if set
+      _log('============================================================');
+      _log('🟢 [SOCKET CONNECTED SUCCESSFULLY]');
+      _log('   Server: $wsUrl');
+      _log('   ReadyState: ${socket.readyState} (OPEN)');
+      _log('============================================================');
+
+      // Send join_business message for backward compatibility and confirmation
       if (_currentBusinessId != null && _currentBusinessId!.isNotEmpty) {
         joinBusiness(_currentBusinessId!);
       }
 
-      // Start ping heartbeat
+      // Start ping heartbeat (20 seconds keepalive)
       _startPing();
 
       // Listen for incoming events from server
-      _socket!.listen(
+      socket.listen(
         (data) {
           try {
             final json = jsonDecode(data.toString()) as Map<String, dynamic>;
+            final eventName = json['event'] ?? json['type'];
+
+            if (eventName == 'pong') {
+              _log('💓 Received heartbeat PONG from server (Connection healthy)');
+              return;
+            }
+
+            if (eventName == 'connection:established') {
+              _log('🤝 Handshake ACK: "${json['data']?['message'] ?? 'Connected to Live WebSocket'}"');
+            } else if (eventName == 'business:joined') {
+              _log('📡 Room subscription confirmed by server: businessId=${json['businessId']}');
+            } else {
+              _log('📩 [SOCKET EVENT] "$eventName" | Payload: $json');
+            }
+
             _eventController.add(json);
           } catch (e) {
-            debugPrint('[WebSocket] ⚠️ JSON parse error on incoming event: $e');
+            _log('⚠️ JSON parse error on incoming event: $e | Raw: $data');
           }
         },
         onError: (error) {
-          debugPrint('[WebSocket] ⚠️ Socket error: $error');
-          _handleDisconnect();
+          _log('============================================================');
+          _log('🔴 [SOCKET ERROR]: $error');
+          _log('============================================================');
+          _handleDisconnect('Socket error: $error');
         },
         onDone: () {
-          debugPrint('[WebSocket] ℹ️ Socket connection closed by remote.');
-          _handleDisconnect();
+          final code = socket.closeCode;
+          final reason = socket.closeReason;
+          _log('============================================================');
+          _log('⚪ [SOCKET CLOSED BY SERVER]');
+          _log('   Close Code: $code');
+          _log('   Close Reason: ${reason ?? "None"}');
+          _log('============================================================');
+          _handleDisconnect('Closed by server (code: $code, reason: $reason)');
         },
         cancelOnError: true,
       );
-    } catch (e) {
-      debugPrint('[WebSocket] ❌ Connection failed: $e');
-      _handleDisconnect();
+    } catch (e, stack) {
+      _log('============================================================');
+      _log('🔴 [SOCKET CONNECTION FAILED]');
+      _log('   URL: $rawWsUrl');
+      _log('   Error: $e');
+      _log('   Stack: $stack');
+      _log('============================================================');
+      _handleDisconnect('Connection attempt failed: $e');
     }
   }
 
@@ -122,36 +192,45 @@ class WebSocketService {
         _socket!.add(
           jsonEncode({'type': 'join_business', 'businessId': businessId}),
         );
-        debugPrint('[WebSocket] 📡 Joined business room: $businessId');
+        _log('📡 Sent "join_business" message for: $businessId');
       } catch (e) {
-        debugPrint('[WebSocket] ⚠️ Error sending join_business: $e');
+        _log('⚠️ Error sending join_business: $e');
       }
+    } else {
+      _log('⏳ joinBusiness($businessId) queued - will send once socket is CONNECTED (Current: ${_status.name.toUpperCase()})');
     }
   }
 
   void _startPing() {
     _pingTimer?.cancel();
-    _pingTimer = Timer.periodic(const Duration(seconds: 25), (_) {
+    _pingTimer = Timer.periodic(const Duration(seconds: 20), (_) {
       if (_status == WebSocketStatus.connected && _socket != null) {
         try {
           _socket!.add(jsonEncode({'type': 'ping'}));
-        } catch (_) {}
+          _log('💓 Sent heartbeat PING to server');
+        } catch (e) {
+          _log('⚠️ Heartbeat PING failed: $e');
+        }
       }
     });
   }
 
-  void _handleDisconnect() {
+  void _handleDisconnect([String? reason]) {
     _pingTimer?.cancel();
     _socket = null;
+    final previousStatus = _status;
     _status = WebSocketStatus.disconnected;
     _statusController.add(_status);
 
-    // Auto reconnect after 4 seconds
+    _log('⚪ Status changed: ${previousStatus.name.toUpperCase()} -> DISCONNECTED${reason != null ? " ($reason)" : ""}');
+
+    // Auto reconnect after 3 seconds
     if (!_isDisposed) {
       _reconnectTimer?.cancel();
-      _reconnectTimer = Timer(const Duration(seconds: 4), () {
+      _log('🔄 Scheduling auto-reconnect in 3 seconds...');
+      _reconnectTimer = Timer(const Duration(seconds: 3), () {
         if (!_isDisposed && _status == WebSocketStatus.disconnected) {
-          debugPrint('[WebSocket] 🔄 Attempting auto-reconnect...');
+          _log('🔄 Executing auto-reconnect now...');
           connect(businessId: _currentBusinessId);
         }
       });
@@ -160,6 +239,7 @@ class WebSocketService {
 
   /// Manually disconnect
   void disconnect() {
+    _log('🛑 Manual disconnect() called');
     _reconnectTimer?.cancel();
     _pingTimer?.cancel();
     try {
@@ -172,6 +252,7 @@ class WebSocketService {
 
   /// Dispose all resources and streams
   void dispose() {
+    _log('🛑 dispose() called');
     _isDisposed = true;
     disconnect();
     _statusController.close();

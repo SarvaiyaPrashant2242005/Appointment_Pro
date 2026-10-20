@@ -282,7 +282,10 @@ class BookingService {
             // Broadcast real-time live WebSocket event to business room
             try {
                 const websocketService = require('../websocket/websocket.service');
-                websocketService.broadcastBookingEvent('booking:created', fullBooking, {
+                if (business) { fullBooking.business = business; websocketService.registerBusinessMapping(business.id, business.slug); }
+            websocketService.broadcastBookingEvent('booking:created', fullBooking, {
+                businessId: business?.id,
+                businessSlug: business?.slug,
                     message: `New appointment booked for ${fullBooking.customer?.name || 'Customer'}!`,
                 });
             } catch (wsErr) {
