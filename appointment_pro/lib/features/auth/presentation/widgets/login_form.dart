@@ -10,6 +10,7 @@ class LoginForm extends StatefulWidget {
   final bool isLoading;
   final VoidCallback onSubmit;
   final VoidCallback onRegisterTap;
+  final VoidCallback? onForgotPasswordTap;
 
   const LoginForm({
     super.key,
@@ -19,6 +20,7 @@ class LoginForm extends StatefulWidget {
     required this.isLoading,
     required this.onSubmit,
     required this.onRegisterTap,
+    this.onForgotPasswordTap,
   });
 
   @override
@@ -63,7 +65,7 @@ class _LoginFormState extends State<LoginForm> {
               return Validators.validateEmail(v);
             },
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
           AppTextField(
             label: 'Password',
             isRequired: true,
@@ -80,7 +82,27 @@ class _LoginFormState extends State<LoginForm> {
               return null;
             },
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: widget.onForgotPasswordTap,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Forgot Password?',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           AppButton(
             label: 'Sign In',
             onPressed: _handleSubmit,

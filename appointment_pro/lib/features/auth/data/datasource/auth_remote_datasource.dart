@@ -69,6 +69,34 @@ class AuthRemoteDataSource {
     return AuthResponseModel.fromJson(response);
   }
 
+  Future<String> forgotPassword({required String email}) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.forgotPassword,
+      data: {'email': email.trim().toLowerCase()},
+    );
+    return response['messageToShow'] as String? ??
+        response['message'] as String? ??
+        'If an account exists with this email, a 6-digit password reset code has been sent.';
+  }
+
+  Future<String> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.resetPassword,
+      data: {
+        'email': email.trim().toLowerCase(),
+        'otp': otp.trim(),
+        'newPassword': newPassword,
+      },
+    );
+    return response['messageToShow'] as String? ??
+        response['message'] as String? ??
+        'Your password has been reset successfully. You can now log in with your new password.';
+  }
+
   Future<void> saveFcmToken(String fcmToken) async {
     try {
       await _apiClient.post(

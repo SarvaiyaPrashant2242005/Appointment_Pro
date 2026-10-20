@@ -84,6 +84,22 @@ class AuthRepository {
     return response;
   }
 
+  Future<String> forgotPassword({required String email}) async {
+    return await _remote.forgotPassword(email: email);
+  }
+
+  Future<String> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    return await _remote.resetPassword(
+      email: email,
+      otp: otp,
+      newPassword: newPassword,
+    );
+  }
+
   Future<void> saveFcmToken(String fcmToken) async {
     await _remote.saveFcmToken(fcmToken);
   }

@@ -266,6 +266,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 onSubmit: _login,
                                 onRegisterTap: () =>
                                     context.go(AppRouter.register),
+                                onForgotPasswordTap: () {
+                                  final email = _emailController.text.trim();
+                                  context.push(
+                                    email.isNotEmpty
+                                        ? '${AppRouter.forgotPassword}?email=${Uri.encodeComponent(email)}'
+                                        : AppRouter.forgotPassword,
+                                    extra: email.isNotEmpty ? email : null,
+                                  );
+                                },
                               ),
                             ),
                           ),

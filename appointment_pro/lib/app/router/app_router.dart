@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/verify_otp_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/availability/presentation/screens/availability_screen.dart';
 import '../../features/bussiness_setup/presentation/screens/business_list_screen.dart';
 import '../../features/bussiness_setup/presentation/screens/business_setup_screen.dart';
@@ -32,6 +34,8 @@ class AppRouter {
   static const login = '/login';
   static const register = '/register';
   static const verifyOtp = '/verify-otp';
+  static const forgotPassword = '/forgot-password';
+  static const resetPassword = '/reset-password';
   static const businessSetup = '/business-setup';
   static const notifications = '/notifications';
   static const reports = '/reports';
@@ -132,6 +136,28 @@ class AppRouter {
           return _buildSmoothPage(
             state: state,
             child: VerifyOtpScreen(email: email),
+          );
+        },
+      ),
+      GoRoute(
+        path: forgotPassword,
+        pageBuilder: (context, state) {
+          final email = state.uri.queryParameters['email'] ??
+              (state.extra is String ? state.extra as String : null);
+          return _buildSmoothPage(
+            state: state,
+            child: ForgotPasswordScreen(initialEmail: email),
+          );
+        },
+      ),
+      GoRoute(
+        path: resetPassword,
+        pageBuilder: (context, state) {
+          final email = state.uri.queryParameters['email'] ??
+              (state.extra is String ? state.extra as String : '');
+          return _buildSmoothPage(
+            state: state,
+            child: ResetPasswordScreen(email: email),
           );
         },
       ),
