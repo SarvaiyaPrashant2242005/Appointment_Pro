@@ -18,8 +18,10 @@ class ApiEndpoints {
       return 'https://appointment-pro.rishvi.app/api/v1';
     }
     if (Platform.isAndroid) {
+      // return 'https://appointment-pro.rishvi.app/api/v1';
       return 'https://appointment-pro.rishvi.app/api/v1';
     }
+    // return 'https://appointment-pro.rishvi.app/api/v1';
     return 'https://appointment-pro.rishvi.app/api/v1';
   }
 

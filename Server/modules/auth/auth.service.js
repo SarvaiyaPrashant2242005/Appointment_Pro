@@ -222,14 +222,14 @@ class AuthService {
         const user = await User.findOne({ where: { email: normalizedEmail } });
 
         if (!user) {
-            const error = new Error('The email address or password you entered is incorrect. Please try again.');
-            error.statusCode = 401;
+            const error = new Error('This email address is not registered. Please sign up or check your email.');
+            error.statusCode = 404;
             throw error;
         }
 
         const isPasswordMatch = await bcrypt.compare(password, user.password_hash);
         if (!isPasswordMatch) {
-            const error = new Error('The email address or password you entered is incorrect. Please try again.');
+            const error = new Error('The password you entered is incorrect. Please try again.');
             error.statusCode = 401;
             throw error;
         }

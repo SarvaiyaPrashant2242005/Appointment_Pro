@@ -5,7 +5,12 @@ const { sendError } = require('../utils/response');
  * Global application error handling middleware
  */
 const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused-vars
-    console.error('Unhandled Application Error:', err);
+    const isServerError = !err.statusCode || err.statusCode >= 500;
+    if (isServerError && !(err instanceof multer.MulterError) && err.name !== 'SequelizeUniqueConstraintError' && err.name !== 'SequelizeValidationError') {
+        console.error('Unhandled Application Error:', err);
+    } else {
+        console.warn('[Client Error ' + (err.statusCode || 400) + '] ' + req.method + ' ' + req.originalUrl + ': ' + err.message);
+    }
 
     if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {

@@ -1,4 +1,4 @@
-package com.example.appointment_pro
+package com.rishvi.appointment_pro
 
 import io.flutter.embedding.android.FlutterActivity
 

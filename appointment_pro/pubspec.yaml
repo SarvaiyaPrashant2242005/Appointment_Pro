@@ -32,6 +32,41 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  package_rename: ^1.10.1
+
+package_rename_config:
+  android:
+    app_name: "Appointment Pro" # Display name
+    package_name: "com.rishvi.appointment_pro" # Package name
+    override_old_package: "com.example.appointment_pro" # Optional: Cleans up old folder structure
+    lang: "kotlin" # Optional: "kotlin" (default) or "java"
+
+  ios:
+    app_name: "Appointment Pro" # Display name
+    bundle_name: "Appointment Pro" # Bundle name
+    package_name: "com.rishvi.appointment_pro" # Product Bundle Identifier
+
+  linux:
+    app_name: "Appointment Pro" # Window title
+    package_name: "com.rishvi.appointment_pro" # Application ID
+    exe_name: "my_app" # Executable name (binary)
+
+  macos:
+    app_name: "Appointment Pro" # Product name
+    package_name: "com.rishvi.appointment_pro" # Product Bundle Identifier
+    copyright_notice: "Copyright © 2026" # Copyright notice
+
+  web:
+    app_name: "Appointment Pro" # App title & PWA name
+    short_app_name: "App" # PWA short name (defaults to app_name)
+    description: "Best App" # Web app description
+
+  windows:
+    app_name: "Appointment Pro" # Window title & Software name
+    organization: "Rishvi" # Organization/Company name
+    copyright_notice: "Copyright © 2026" # Legal copyright
+    exe_name: "my_app" # Executable name (binary)
+
 
 flutter_launcher_icons:
   android: "launcher_icon"

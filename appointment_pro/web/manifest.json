@@ -1,11 +1,11 @@
 {
-    "name": "appointment_pro",
-    "short_name": "appointment_pro",
+    "name": "Appointment Pro",
+    "short_name": "App",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#hexcode",
     "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "description": "Best App",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
